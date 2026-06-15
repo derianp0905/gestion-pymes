@@ -88,19 +88,13 @@ export default function PerfilEmpresa() {
     <Layout>
     <div style={{ maxWidth: 720, margin: '0 auto' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
-        <button onClick={() => navigate(-1)} className="btn-ghost"
-          style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-3)', padding: '6px 10px' }}>
-          <ArrowLeft size={15} /> Volver
+      <div style={{ marginBottom: 28 }}>
+        <button onClick={() => navigate(-1)}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 13, color: 'var(--text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 14px', lineHeight: 1 }}>
+          <ArrowLeft size={13} /> Volver
         </button>
-        <div style={{ width: 1, height: 20, background: 'var(--border)' }} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Building2 size={18} style={{ color: 'var(--blue)' }} />
-          <div>
-            <h2 style={{ margin: 0 }}>Perfil de Empresa</h2>
-            <p className="muted sm" style={{ margin: 0 }}>Esta información aparece en tus facturas y documentos.</p>
-          </div>
-        </div>
+        <h2 style={{ margin: '0 0 4px' }}>Perfil de Empresa</h2>
+        <p className="muted sm" style={{ margin: 0 }}>Esta información aparece en tus facturas y documentos.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
