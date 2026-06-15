@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, FileText, Wallet, Package,
   CalendarClock, Building2, UserCog, Sparkles, GitBranch,
   Settings, ShieldCheck, LogOut, ChevronLeft, CircleDollarSign,
-  Search, Bell, Sun, Moon, Zap, Lock,
+  Search, Bell, Sun, Moon, Zap, Lock, Menu, X,
 } from 'lucide-react'
 
 const CORE = ['clientes', 'facturacion', 'caja']
@@ -34,7 +34,7 @@ const CATALOG = [
   { label: null, items: [{ to: '/perfil-empresa', key: 'config', label: 'Configuración', icon: Settings, free: true }] },
 ]
 
-function NavItem({ item, hasModule, collapsed }) {
+function NavItem({ item, hasModule, collapsed, onClose }) {
   const location = useLocation()
   const active = location.pathname === item.to || (item.to === '/dashboard' && location.pathname === '/')
   const needsPlan = !item.free && item.key && !hasModule(item.key)
@@ -43,6 +43,7 @@ function NavItem({ item, hasModule, collapsed }) {
   return (
     <Link
       to={item.to}
+      onClick={onClose}
       className={`nav-item ${active ? 'active' : ''} ${needsPlan ? 'locked' : ''}`}
       title={collapsed ? item.label : undefined}
     >
@@ -63,7 +64,9 @@ export default function Layout({ children }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
   const [light, setLight] = useState(() => localStorage.getItem('theme') === 'light')
+  const closeMobile = () => setMobileOpen(false)
 
   const handleLogout = () => { logout(); navigate('/login') }
 
@@ -93,8 +96,11 @@ export default function Layout({ children }) {
 
   return (
     <div className={`app ${collapsed ? 'is-collapsed' : ''} ${light ? 'light' : ''}`}>
+      {/* Overlay móvil */}
+      {mobileOpen && <div className="mob-overlay" onClick={closeMobile} />}
+
       {/* ── Sidebar ── */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${mobileOpen ? 'mob-open' : ''}`}>
         {/* Brand */}
         <div className="brand">
           <div className="logo"><CircleDollarSign size={20} /></div>
@@ -113,7 +119,7 @@ export default function Layout({ children }) {
             <div key={gi}>
               {group.label && <span className="nav-label">{group.label}</span>}
               {group.items.map(item => (
-                <NavItem key={item.key} item={item} hasModule={hasModule} collapsed={collapsed} />
+                <NavItem key={item.key} item={item} hasModule={hasModule} collapsed={collapsed} onClose={closeMobile} />
               ))}
             </div>
           ))}
@@ -164,9 +170,14 @@ export default function Layout({ children }) {
       <main className="main">
         {/* Topbar */}
         <header className="topbar">
-          <div>
-            <span className="muted sm" style={{ textTransform: 'capitalize' }}>{today}</span>
-            <h1>{pageTitle}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button className="hamburger icon-btn" onClick={() => setMobileOpen(o => !o)} aria-label="Menú">
+              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+            <div>
+              <span className="muted sm topbar-date" style={{ textTransform: 'capitalize' }}>{today}</span>
+              <h1>{pageTitle}</h1>
+            </div>
           </div>
           <div className="top-actions">
             <div className="searchbox">

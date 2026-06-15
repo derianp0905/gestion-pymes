@@ -608,22 +608,74 @@ textarea.input { resize: vertical; }
 .animate-spin { animation: spin .7s linear infinite; }
 
 /* ── Responsive ── */
+.hamburger { display: none; }
+.mob-overlay { display: none; }
+
 @media (max-width: 1080px) {
-  .grid-main, .split-stats, .cli-grid, .ins-grid { grid-template-columns: repeat(2, 1fr); }
+  .grid-main { grid-template-columns: repeat(2, 1fr); }
+  .split-stats, .cli-grid, .ins-grid { grid-template-columns: repeat(2, 1fr); }
   .span-2 { grid-column: span 2; }
 }
+
 @media (max-width: 720px) {
-  .sidebar { position: fixed; z-index: 50; width: 74px; }
-  .sidebar .brand-txt, .sidebar .nav-item span, .sidebar .nav-label,
-  .sidebar .badge-plan, .sidebar .user .grow { display: none; }
-  .sidebar .brand, .sidebar .nav-item { justify-content: center; }
-  .main { margin-left: 74px; }
-  .grid-main, .split-stats, .cli-grid, .ins-grid { grid-template-columns: 1fr; }
-  .span-2, .span-full { grid-column: 1 / -1; }
+  /* — Sidebar como drawer — */
+  .sidebar {
+    position: fixed;
+    left: -260px;
+    top: 0;
+    width: 252px !important;
+    height: 100vh;
+    z-index: 200;
+    transition: left .25s cubic-bezier(.4,0,.2,1);
+  }
+  .sidebar.mob-open { left: 0; }
+
+  /* Siempre mostrar contenido del sidebar en móvil (ignora is-collapsed) */
+  .sidebar .brand-txt,
+  .sidebar .nav-item span,
+  .sidebar .nav-label,
+  .sidebar .badge-plan,
+  .sidebar .user-section .grow,
+  .sidebar .logout-icon { display: flex !important; }
+  .sidebar .brand { justify-content: flex-start !important; }
+  .sidebar .nav-item { justify-content: flex-start !important; }
+  .collapse-btn { display: none; }
+
+  /* — Overlay — */
+  .mob-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.55);
+    z-index: 199;
+    backdrop-filter: blur(2px);
+  }
+
+  /* — Main ocupa todo el ancho — */
+  .main { margin-left: 0 !important; }
+
+  /* — Hamburger visible — */
+  .hamburger { display: grid !important; }
+
+  /* — Topbar — */
+  .topbar { padding: 10px 14px; gap: 10px; }
+  .topbar h1 { font-size: 18px; margin: 0; }
+  .topbar-date { display: none; }
   .searchbox, .plan-chip { display: none; }
-  .topbar { padding: 14px 16px; }
-  .content { padding: 16px; }
-  .net-num { font-size: 30px; }
-  .ai-head { flex-direction: column; align-items: flex-start; }
+
+  /* — Content — */
+  .content { padding: 14px 14px 40px; }
+
+  /* — Grids — */
+  .grid-main { grid-template-columns: 1fr !important; }
+  .split-stats, .cli-grid, .ins-grid { grid-template-columns: 1fr !important; }
+  .span-2, .span-full { grid-column: 1 / -1; }
+
+  /* — Tables scrollables — */
+  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* — Misc — */
+  .net-num { font-size: 28px; }
 }
+
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
