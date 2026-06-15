@@ -9,6 +9,9 @@ import Facturacion from './pages/Facturacion'
 import Caja from './pages/Caja'
 import SuperAdmin from './pages/SuperAdmin'
 import PerfilEmpresa from './pages/PerfilEmpresa'
+import Inventario from './pages/Inventario'
+import Agenda from './pages/Agenda'
+import Empleados from './pages/Empleados'
 import ModuloPlaceholder from './pages/ModuloPlaceholder'
 
 function PrivateRoute({ children }) {
@@ -50,12 +53,12 @@ export default function App() {
           <Route path="/perfil-empresa"   element={priv(<PerfilEmpresa />)} />
 
           {/* Módulos especializados (Pro+) */}
-          <Route path="/inventario"  element={priv(<ModuloPlaceholder module="inventario" />)} />
-          <Route path="/agenda"      element={priv(<ModuloPlaceholder module="agenda" />)} />
+          <Route path="/inventario"  element={priv(<Inventario />)} />
+          <Route path="/agenda"      element={priv(<Agenda />)} />
           <Route path="/establo"     element={priv(<ModuloPlaceholder module="establo" />)} />
 
           {/* Módulos premium (Business) */}
-          <Route path="/empleados"   element={priv(<ModuloPlaceholder module="empleados" />)} />
+          <Route path="/empleados"   element={priv(<Empleados />)} />
           <Route path="/reportes"    element={priv(<ModuloPlaceholder module="reportes_ia" />)} />
           <Route path="/sucursales"  element={priv(<ModuloPlaceholder module="multi_sucursal" />)} />
 

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, subscriptions, superadmin, clientes, facturacion, caja, dashboard, perfil_empresa
+from app.routers import auth, subscriptions, superadmin, clientes, facturacion, caja, dashboard, perfil_empresa, inventario, agenda, empleados
 
 app = FastAPI(
     title="Gestión PYMES — SaaS Platform",
@@ -25,6 +25,9 @@ app.include_router(facturacion.router)
 app.include_router(caja.router)
 app.include_router(dashboard.router)
 app.include_router(perfil_empresa.router)
+app.include_router(inventario.router)
+app.include_router(agenda.router)
+app.include_router(empleados.router)
 
 
 @app.get("/")
