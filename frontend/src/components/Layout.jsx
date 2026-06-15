@@ -64,7 +64,7 @@ export default function Layout({ children }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
-  const [light, setLight] = useState(false)
+  const [light, setLight] = useState(() => localStorage.getItem('theme') === 'light')
 
   const handleLogout = () => { logout(); navigate('/login') }
 
@@ -175,7 +175,7 @@ export default function Layout({ children }) {
               <input placeholder="Buscar factura, cliente…" readOnly onClick={() => navigate('/clientes')} style={{ cursor: 'pointer' }} />
             </div>
             <span className="plan-chip">{planLabel}</span>
-            <button className="icon-btn" aria-label="Cambiar tema" onClick={() => setLight(l => !l)}>
+            <button className="icon-btn" aria-label="Cambiar tema" onClick={() => setLight(l => { const next = !l; localStorage.setItem('theme', next ? 'light' : 'dark'); return next })}>
               {light ? <Moon size={18} /> : <Sun size={18} />}
             </button>
             <button className="icon-btn" aria-label="Notificaciones">
