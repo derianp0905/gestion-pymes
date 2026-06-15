@@ -106,7 +106,7 @@ export default function Reportes() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
             <span className="eyebrow"><BarChart2 size={11} /> Análisis del negocio</span>
-            <h2>Reportes</h2>
+            <h2>Reportes del negocio</h2>
           </div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             {d && (

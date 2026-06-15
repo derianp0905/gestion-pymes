@@ -29,8 +29,7 @@ const CATALOG = [
   ]},
   { label: 'Premium', items: [
     { to: '/empleados',   key: 'empleados',       label: 'Empleados',      icon: UserCog },
-    { to: '/reportes',    key: 'reportes_ia',     label: 'Reportes IA',    icon: Sparkles },
-    { to: '/sucursales',  key: 'multi_sucursal',  label: 'Multi-sucursal', icon: GitBranch },
+    { to: '/reportes',    key: 'reportes_ia',     label: 'Reportes',       icon: Sparkles },
   ]},
   { label: null, items: [{ to: '/perfil-empresa', key: 'config', label: 'Configuración', icon: Settings, free: true }] },
 ]
@@ -82,7 +81,7 @@ export default function Layout({ children }) {
     if (p.startsWith('/inventario')) return 'Inventario'
     if (p.startsWith('/agenda')) return 'Agenda'
     if (p.startsWith('/empleados')) return 'Empleados'
-    if (p.startsWith('/reportes')) return 'Reportes IA'
+    if (p.startsWith('/reportes')) return 'Reportes'
     if (p.startsWith('/sucursales')) return 'Multi-sucursal'
     if (p.startsWith('/perfil-empresa')) return 'Configuración'
     if (p.startsWith('/superadmin')) return 'Super Admin'
