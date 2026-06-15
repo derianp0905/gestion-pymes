@@ -4,9 +4,11 @@ import Login from './pages/Login'
 import Registro from './pages/Registro'
 import Dashboard from './pages/Dashboard'
 import Clientes from './pages/Clientes'
+import ClienteDetalle from './pages/ClienteDetalle'
 import Facturacion from './pages/Facturacion'
 import Caja from './pages/Caja'
 import SuperAdmin from './pages/SuperAdmin'
+import PerfilEmpresa from './pages/PerfilEmpresa'
 import ModuloPlaceholder from './pages/ModuloPlaceholder'
 
 function PrivateRoute({ children }) {
@@ -40,10 +42,12 @@ export default function App() {
           <Route path="/registro" element={<Registro />} />
 
           {/* Módulos core */}
-          <Route path="/dashboard"   element={priv(<Dashboard />)} />
-          <Route path="/clientes"    element={priv(<Clientes />)} />
-          <Route path="/facturacion" element={priv(<Facturacion />)} />
-          <Route path="/caja"        element={priv(<Caja />)} />
+          <Route path="/dashboard"        element={priv(<Dashboard />)} />
+          <Route path="/clientes"         element={priv(<Clientes />)} />
+          <Route path="/clientes/:id"     element={priv(<ClienteDetalle />)} />
+          <Route path="/facturacion"      element={priv(<Facturacion />)} />
+          <Route path="/caja"             element={priv(<Caja />)} />
+          <Route path="/perfil-empresa"   element={priv(<PerfilEmpresa />)} />
 
           {/* Módulos especializados (Pro+) */}
           <Route path="/inventario"  element={priv(<ModuloPlaceholder module="inventario" />)} />

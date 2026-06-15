@@ -4,24 +4,26 @@ import { useSubscription } from '../hooks/useSubscription'
 import {
   LayoutDashboard, Users, FileText, Wallet, Package,
   CalendarDays, Building2, Users2, BarChart3, GitBranch,
-  ShieldCheck, LogOut, ChevronRight, Lock
+  ShieldCheck, LogOut, ChevronRight, Lock, Settings
 } from 'lucide-react'
 
 const NAV = [
   { section: 'Principal' },
-  { to: '/dashboard',   label: 'Dashboard',     icon: LayoutDashboard, module: null },
+  { to: '/dashboard',      label: 'Dashboard',     icon: LayoutDashboard, module: null },
   { section: 'Módulos Core' },
-  { to: '/clientes',    label: 'Clientes',       icon: Users,           module: 'clientes' },
-  { to: '/facturacion', label: 'Facturación',    icon: FileText,        module: 'facturacion' },
-  { to: '/caja',        label: 'Caja',           icon: Wallet,          module: 'caja' },
+  { to: '/clientes',       label: 'Clientes',       icon: Users,           module: 'clientes' },
+  { to: '/facturacion',    label: 'Facturación',    icon: FileText,        module: 'facturacion' },
+  { to: '/caja',           label: 'Caja',           icon: Wallet,          module: 'caja' },
   { section: 'Especializados' },
-  { to: '/inventario',  label: 'Inventario',     icon: Package,         module: 'inventario' },
-  { to: '/agenda',      label: 'Agenda',         icon: CalendarDays,    module: 'agenda' },
-  { to: '/establo',     label: 'Establo',        icon: Building2,       module: 'establo' },
+  { to: '/inventario',     label: 'Inventario',     icon: Package,         module: 'inventario' },
+  { to: '/agenda',         label: 'Agenda',         icon: CalendarDays,    module: 'agenda' },
+  { to: '/establo',        label: 'Establo',        icon: Building2,       module: 'establo' },
   { section: 'Premium' },
-  { to: '/empleados',   label: 'Empleados',      icon: Users2,          module: 'empleados' },
-  { to: '/reportes',    label: 'Reportes IA',    icon: BarChart3,       module: 'reportes_ia' },
-  { to: '/sucursales',  label: 'Multi-sucursal', icon: GitBranch,       module: 'multi_sucursal' },
+  { to: '/empleados',      label: 'Empleados',      icon: Users2,          module: 'empleados' },
+  { to: '/reportes',       label: 'Reportes IA',    icon: BarChart3,       module: 'reportes_ia' },
+  { to: '/sucursales',     label: 'Multi-sucursal', icon: GitBranch,       module: 'multi_sucursal' },
+  { section: 'Configuración' },
+  { to: '/perfil-empresa', label: 'Mi Empresa',     icon: Settings,        module: null },
 ]
 
 function NavItem({ item, hasModule }) {
@@ -156,8 +158,10 @@ export default function Layout({ children }) {
       </aside>
 
       {/* Main */}
-      <main className="flex-1 overflow-y-auto bg-slate-50">
-        {children}
+      <main className="flex-1 overflow-y-auto bg-slate-950">
+        <div className="p-8">
+          {children}
+        </div>
       </main>
     </div>
   )
