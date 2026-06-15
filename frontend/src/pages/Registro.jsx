@@ -1,44 +1,47 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { Building2, ArrowRight, Eye, EyeOff, Check } from 'lucide-react'
+import { ArrowRight, Eye, EyeOff, Check } from 'lucide-react'
 
 const PLANES = [
   {
     name: 'Basic',
     price: '$15',
     desc: 'Para empezar',
+    color: 'var(--border-soft)',
+    accent: 'var(--text-3)',
     modulos: ['Clientes', 'Facturación', 'Caja'],
-    color: 'border-slate-200',
-    badge: '',
   },
   {
     name: 'Pro',
     price: '$30',
     desc: 'El más popular',
-    modulos: ['Todo Basic', 'Inventario', 'Agenda', 'Establo'],
-    color: 'border-indigo-500',
+    color: 'var(--green)',
+    accent: 'var(--green)',
     badge: 'Popular',
+    modulos: ['Todo Basic', 'Inventario', 'Agenda'],
   },
   {
     name: 'Business',
     price: '$60',
     desc: 'Sin límites',
+    color: 'var(--violet)',
+    accent: 'var(--violet)',
     modulos: ['Todo Pro', 'Empleados', 'Reportes IA', 'Multi-sucursal'],
-    color: 'border-slate-200',
-    badge: '',
   },
 ]
 
 export default function Registro() {
   const { registro } = useAuth()
   const navigate = useNavigate()
-  const [form, setForm] = useState({ nombre: '', email: '', password: '' })
+  const [form, setForm]         = useState({ nombre: '', email: '', password: '' })
   const [showPass, setShowPass] = useState(false)
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [error, setError]       = useState('')
+  const [loading, setLoading]   = useState(false)
 
-  const handleSubmit = async (e) => {
+  const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
+
+  const handleSubmit = async e => {
     e.preventDefault()
     setError('')
     setLoading(true)
@@ -53,135 +56,122 @@ export default function Registro() {
   }
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left — planes */}
-      <div className="hidden lg:flex lg:w-[55%] bg-slate-50 p-12 flex-col justify-between border-r border-slate-100">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center">
-            <Building2 className="w-5 h-5 text-white" />
-          </div>
-          <span className="font-bold text-slate-900 text-lg tracking-tight">Gestión PYMES</span>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)', fontFamily: "'Inter', sans-serif" }}>
+
+      {/* ── Panel izquierdo — planes ── */}
+      <div style={{ display: 'none', width: '55%', background: 'var(--sidebar)', borderRight: '1px solid var(--border-soft)', padding: '48px', flexDirection: 'column', justifyContent: 'space-between' }}
+        className="reg-left">
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 38, height: 38, background: 'linear-gradient(140deg,#34D399,#10b981)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: '#06281f', fontFamily: "'Space Grotesk', sans-serif" }}>G</div>
+          <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 18, color: 'var(--text)' }}>GestiónOS</span>
         </div>
 
         <div>
-          <h2 className="text-3xl font-bold text-slate-900 mb-2">Elige tu plan</h2>
-          <p className="text-slate-500 mb-8">14 días gratis en cualquier plan, sin tarjeta de crédito.</p>
-          <div className="grid grid-cols-3 gap-4">
-            {PLANES.map((p) => (
-              <div key={p.name} className={`card p-5 relative border-2 ${p.color}`}>
+          <h2 style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 30, color: 'var(--text)', margin: '0 0 8px' }}>Elige tu plan</h2>
+          <p style={{ color: 'var(--text-2)', fontSize: 14, marginBottom: 28 }}>14 días gratis en cualquier plan, sin tarjeta de crédito.</p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+            {PLANES.map(p => (
+              <div key={p.name} style={{ background: 'var(--surface)', border: `1.5px solid ${p.color}`, borderRadius: 16, padding: '20px 16px', position: 'relative' }}>
                 {p.badge && (
-                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 badge badge-blue text-xs">
+                  <span style={{ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', background: 'var(--green)', color: '#06281f', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, whiteSpace: 'nowrap' }}>
                     {p.badge}
                   </span>
                 )}
-                <p className="text-xs text-slate-500 mb-1">{p.desc}</p>
-                <p className="text-2xl font-bold text-slate-900">{p.price}<span className="text-sm font-normal text-slate-500">/mes</span></p>
-                <p className="font-semibold text-slate-800 mt-2 mb-3">{p.name}</p>
-                <ul className="space-y-1.5">
-                  {p.modulos.map((m) => (
-                    <li key={m} className="flex items-center gap-2 text-xs text-slate-600">
-                      <Check className="w-3 h-3 text-emerald-500 shrink-0" />
-                      {m}
-                    </li>
+                <p style={{ color: 'var(--text-3)', fontSize: 11, marginBottom: 4 }}>{p.desc}</p>
+                <p style={{ fontSize: 24, fontWeight: 700, color: 'var(--text)', margin: '0 0 2px', fontFamily: "'Space Grotesk', sans-serif" }}>
+                  {p.price}<span style={{ fontSize: 12, fontWeight: 400, color: 'var(--text-3)' }}>/mes</span>
+                </p>
+                <p style={{ fontWeight: 600, color: p.accent, fontSize: 13, margin: '0 0 14px' }}>{p.name}</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {p.modulos.map(m => (
+                    <div key={m} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Check size={12} style={{ color: 'var(--green)', flexShrink: 0 }} />
+                      <span style={{ fontSize: 12, color: 'var(--text-2)' }}>{m}</span>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             ))}
           </div>
         </div>
 
-        <p className="text-slate-400 text-xs">Puedes cambiar de plan en cualquier momento.</p>
+        <p style={{ color: 'var(--text-3)', fontSize: 12 }}>Puedes cambiar de plan en cualquier momento desde tu cuenta.</p>
       </div>
 
-      {/* Right — form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-white">
-        <div className="w-full max-w-sm">
-          <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center">
-              <Building2 className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-slate-900">Gestión PYMES</span>
+      {/* ── Panel derecho — formulario ── */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+        <div style={{ width: '100%', maxWidth: 380 }}>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 36 }} className="reg-logo-mobile">
+            <div style={{ width: 36, height: 36, background: 'linear-gradient(140deg,#34D399,#10b981)', borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: '#06281f', fontFamily: "'Space Grotesk', sans-serif" }}>G</div>
+            <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 17, color: 'var(--text)' }}>GestiónOS</span>
           </div>
 
-          <h2 className="text-2xl font-bold text-slate-900 mb-1">Crea tu cuenta</h2>
-          <p className="text-slate-500 text-sm mb-8">
+          <h2 style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 26, color: 'var(--text)', margin: '0 0 6px' }}>Crea tu cuenta</h2>
+          <p style={{ color: 'var(--text-2)', fontSize: 14, marginBottom: 32 }}>
             Empieza con el plan Basic gratis por 14 días.
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Nombre de tu empresa</label>
-              <input
-                type="text"
-                placeholder="Ej: Ferretería Don José"
-                value={form.nombre}
-                onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                className="input"
-                required
-                autoFocus
-              />
+              <label className="eyebrow" style={{ marginBottom: 7 }}>Nombre de tu empresa</label>
+              <input className="input" type="text" placeholder="Ej: Ferretería Don José"
+                value={form.nombre} onChange={set('nombre')} required autoFocus />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
-              <input
-                type="email"
-                placeholder="tu@empresa.com"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="input"
-                required
-              />
+              <label className="eyebrow" style={{ marginBottom: 7 }}>Email</label>
+              <input className="input" type="email" placeholder="tu@empresa.com"
+                value={form.email} onChange={set('email')} required />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Contraseña</label>
-              <div className="relative">
-                <input
-                  type={showPass ? 'text' : 'password'}
-                  placeholder="Mínimo 8 caracteres"
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="input pr-10"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPass(!showPass)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                  {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              <label className="eyebrow" style={{ marginBottom: 7 }}>Contraseña</label>
+              <div style={{ position: 'relative' }}>
+                <input className="input" type={showPass ? 'text' : 'password'} placeholder="Mínimo 8 caracteres"
+                  value={form.password} onChange={set('password')} required style={{ paddingRight: 44 }} />
+                <button type="button" onClick={() => setShowPass(!showPass)}
+                  style={{ position: 'absolute', right: 13, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', display: 'flex', padding: 0 }}>
+                  {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
 
             {error && (
-              <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm px-4 py-3 rounded-xl">
+              <div style={{ background: 'rgba(251,113,133,.1)', border: '1px solid rgba(251,113,133,.3)', color: 'var(--coral)', fontSize: 13.5, padding: '10px 14px', borderRadius: 10 }}>
                 {error}
               </div>
             )}
 
-            <button type="submit" disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2 mt-2">
-              {loading ? (
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>Crear cuenta gratis <ArrowRight className="w-4 h-4" /></>
-              )}
+            <button type="submit" disabled={loading} className="btn-primary"
+              style={{ marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              {loading
+                ? <span style={{ width: 16, height: 16, border: '2px solid rgba(6,40,31,.3)', borderTopColor: '#06281f', borderRadius: '50%', animation: 'spin .7s linear infinite', display: 'block' }} />
+                : <><span>Crear cuenta gratis</span><ArrowRight size={16} /></>}
             </button>
 
-            <p className="text-center text-xs text-slate-400">
+            <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-3)' }}>
               Al registrarte aceptas nuestros términos de servicio.
             </p>
           </form>
 
-          <p className="text-center text-sm text-slate-500 mt-6">
+          <p style={{ textAlign: 'center', fontSize: 14, color: 'var(--text-3)', marginTop: 24 }}>
             ¿Ya tienes cuenta?{' '}
-            <Link to="/login" className="text-indigo-600 font-medium hover:text-indigo-700">
+            <Link to="/login" style={{ color: 'var(--green)', fontWeight: 600, textDecoration: 'none' }}>
               Inicia sesión
             </Link>
           </p>
         </div>
       </div>
+
+      <style>{`
+        @media (min-width: 1024px) {
+          .reg-left { display: flex !important; }
+          .reg-logo-mobile { display: none !important; }
+        }
+      `}</style>
     </div>
   )
 }

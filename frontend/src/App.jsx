@@ -12,6 +12,7 @@ import PerfilEmpresa from './pages/PerfilEmpresa'
 import Inventario from './pages/Inventario'
 import Agenda from './pages/Agenda'
 import Empleados from './pages/Empleados'
+import Reportes from './pages/Reportes'
 import ModuloPlaceholder from './pages/ModuloPlaceholder'
 
 function PrivateRoute({ children }) {
@@ -59,7 +60,7 @@ export default function App() {
 
           {/* Módulos premium (Business) */}
           <Route path="/empleados"   element={priv(<Empleados />)} />
-          <Route path="/reportes"    element={priv(<ModuloPlaceholder module="reportes_ia" />)} />
+          <Route path="/reportes"    element={priv(<Reportes />)} />
           <Route path="/sucursales"  element={priv(<ModuloPlaceholder module="multi_sucursal" />)} />
 
           {/* Super Admin */}
