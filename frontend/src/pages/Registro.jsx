@@ -27,7 +27,7 @@ const PLANES = [
     desc: 'Sin límites',
     color: 'var(--violet)',
     accent: 'var(--violet)',
-    modulos: ['Todo Pro', 'Empleados', 'Reportes IA', 'Multi-sucursal'],
+    modulos: ['Todo Pro', 'Empleados', 'Reportes', 'Multi-sucursal'],
   },
 ]
 
