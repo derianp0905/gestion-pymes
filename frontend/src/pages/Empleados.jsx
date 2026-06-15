@@ -19,7 +19,7 @@ function EmpleadoForm({ initial = {}, onSave, onCancel, loading }) {
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
 
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave({ ...form, salario: parseFloat(form.salario) || 0 }) }}
+    <form onSubmit={e => { e.preventDefault(); onSave({ ...form, salario: parseFloat(form.salario) || 0, fecha_ingreso: form.fecha_ingreso || null }) }}
       style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12 }}>
         <div>
