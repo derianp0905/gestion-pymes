@@ -231,7 +231,7 @@ export default function Agenda() {
                 <span style={{ width: 28, height: 28, border: '2px solid var(--border)', borderTopColor: 'var(--green)', borderRadius: '50%', animation: 'spin .7s linear infinite', display: 'block' }} />
               </div>
             ) : citasDelDia.length === 0 ? (
-              <EmptyState icon="📅" title="Sin citas este día"
+              <EmptyState icon={<Calendar size={44} style={{ color: 'var(--text-3)' }} />} title="Sin citas este día"
                 description="No hay citas programadas para este día."
                 action={<button className="btn-primary" onClick={() => setModal({ fecha: dateStr(selectedDate) })}><Plus size={16} /> Agendar cita</button>}
               />

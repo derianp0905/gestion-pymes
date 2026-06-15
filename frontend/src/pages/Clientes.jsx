@@ -44,7 +44,7 @@ function ClienteForm({ initial = {}, onSave, onCancel, loading }) {
   )
 }
 
-const GRAD = ['linear-gradient(140deg,#34D399,#10b981)', 'linear-gradient(140deg,#FB7185,#e11d48)', 'linear-gradient(140deg,#FBBF24,#d97706)', 'linear-gradient(140deg,#8B86F8,#6d28d9)', 'linear-gradient(140deg,#60A5FA,#2563eb)']
+const GRAD = ['linear-gradient(140deg,#34D399,#10b981)', 'linear-gradient(140deg,#60A5FA,#2563eb)', 'linear-gradient(140deg,#8B86F8,#6d28d9)', 'linear-gradient(140deg,#FBBF24,#d97706)', 'linear-gradient(140deg,#FB7185,#e11d48)']
 
 export default function Clientes() {
   const navigate = useNavigate()

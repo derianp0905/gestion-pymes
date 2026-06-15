@@ -257,8 +257,13 @@ export default function Empleados() {
         {/* Filtros rápidos */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
           {[['', 'Todos'], ...ESTADOS.map(e => [e, e.charAt(0).toUpperCase() + e.slice(1)])].map(([v, l]) => (
-            <button key={v} onClick={() => setEstadoFiltro(v)} className={estadoFiltro === v ? 'btn-primary' : 'btn-ghost'}
-              style={{ padding: '7px 16px', fontSize: 13, borderRadius: 20 }}>
+            <button key={v} onClick={() => setEstadoFiltro(v)}
+              className={estadoFiltro === v ? 'btn-primary' : ''}
+              style={estadoFiltro === v ? { padding: '7px 16px', fontSize: 13, borderRadius: 20, width: 'auto' } : {
+                padding: '7px 16px', fontSize: 13, borderRadius: 20, width: 'auto',
+                background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-2)',
+                cursor: 'pointer', fontWeight: 500,
+              }}>
               {l}
             </button>
           ))}
