@@ -4,109 +4,60 @@ import ModuleGuard from '../components/ModuleGuard'
 import Modal from '../components/Modal'
 import EmptyState from '../components/EmptyState'
 import api from '../api/client'
-import {
-  Plus, FileText, Search, Trash2, Download,
-  PlusCircle, CheckCircle2, Clock, AlertCircle, Pencil
-} from 'lucide-react'
+import { Plus, Trash2, Download, PlusCircle, Pencil } from 'lucide-react'
 
 const ESTADOS = ['borrador', 'enviada', 'pagada', 'vencida']
-const ESTADO_CFG = {
-  borrador: { cls: 'bg-slate-500/20 text-slate-400 border border-slate-500/30', icon: FileText },
-  enviada:  { cls: 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30', icon: Clock },
-  pagada:   { cls: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30', icon: CheckCircle2 },
-  vencida:  { cls: 'bg-red-500/20 text-red-400 border border-red-500/30', icon: AlertCircle },
+const ESTADO_PILL = {
+  borrador: 'soft',
+  enviada:  'soft',
+  pagada:   'pos',
+  vencida:  'neg',
 }
 
 const ITBIS_RATE = 0.18
 const EMPTY_ITEM = () => ({ descripcion: '', cantidad: 1, precio_unitario: '', descuento_pct: 0 })
 
-// ── Tabla de ítems ────────────────────────────────────────────────────────────
 function ItemsTable({ items, onChange }) {
-  const calcSub = (item) => {
+  const calcSub = item => {
     const base = (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio_unitario) || 0)
     const desc = base * ((parseFloat(item.descuento_pct) || 0) / 100)
     return (base - desc).toFixed(2)
   }
-
-  const setItem = (idx, field, val) =>
-    onChange(items.map((it, i) => i === idx ? { ...it, [field]: val } : it))
-
-  const addRow = () => onChange([...items, EMPTY_ITEM()])
-  const removeRow = idx => onChange(items.filter((_, i) => i !== idx))
-
+  const setItem = (idx, field, val) => onChange(items.map((it, i) => i === idx ? { ...it, [field]: val } : it))
   return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-12 gap-1 px-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-        <div className="col-span-5">Descripción</div>
-        <div className="col-span-2 text-right">Cant.</div>
-        <div className="col-span-2 text-right">Precio</div>
-        <div className="col-span-1 text-right">Desc%</div>
-        <div className="col-span-1 text-right">Sub.</div>
-        <div className="col-span-1" />
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: '5fr 2fr 2fr 1fr 1fr 24px', gap: 6, padding: '0 4px', marginBottom: 6 }}>
+        {['Descripción', 'Cant.', 'Precio', 'Desc%', 'Sub.', ''].map(h => (
+          <span key={h} className="eyebrow" style={{ fontSize: 10, marginBottom: 0 }}>{h}</span>
+        ))}
       </div>
       {items.map((item, idx) => (
-        <div key={idx} className="grid grid-cols-12 gap-1 items-center">
-          <input
-            className="input col-span-5 text-sm py-1.5"
-            value={item.descripcion}
-            onChange={e => setItem(idx, 'descripcion', e.target.value)}
-            placeholder="Descripción del ítem"
-          />
-          <input
-            className="input col-span-2 text-sm py-1.5 text-right"
-            type="number" min="0" step="1"
-            value={item.cantidad}
-            onChange={e => setItem(idx, 'cantidad', e.target.value)}
-          />
-          <input
-            className="input col-span-2 text-sm py-1.5 text-right"
-            type="number" min="0" step="0.01"
-            value={item.precio_unitario}
-            onChange={e => setItem(idx, 'precio_unitario', e.target.value)}
-            placeholder="0.00"
-          />
-          <input
-            className="input col-span-1 text-sm py-1.5 text-right"
-            type="number" min="0" max="100" step="1"
-            value={item.descuento_pct}
-            onChange={e => setItem(idx, 'descuento_pct', e.target.value)}
-          />
-          <div className="col-span-1 text-right text-sm text-slate-300 font-medium pr-1">
-            {calcSub(item)}
-          </div>
-          <button
-            type="button"
-            onClick={() => removeRow(idx)}
-            className="col-span-1 flex justify-center text-slate-600 hover:text-rose-400 transition-colors"
-            disabled={items.length <= 1}
-          >
-            <Trash2 size={13} />
+        <div key={idx} style={{ display: 'grid', gridTemplateColumns: '5fr 2fr 2fr 1fr 1fr 24px', gap: 6, marginBottom: 6, alignItems: 'center' }}>
+          <input className="input" style={{ fontSize: 13 }} value={item.descripcion} onChange={e => setItem(idx, 'descripcion', e.target.value)} placeholder="Descripción" />
+          <input className="input" style={{ fontSize: 13, textAlign: 'right' }} type="number" min="0" step="1" value={item.cantidad} onChange={e => setItem(idx, 'cantidad', e.target.value)} />
+          <input className="input" style={{ fontSize: 13, textAlign: 'right' }} type="number" min="0" step="0.01" value={item.precio_unitario} onChange={e => setItem(idx, 'precio_unitario', e.target.value)} placeholder="0.00" />
+          <input className="input" style={{ fontSize: 13, textAlign: 'right' }} type="number" min="0" max="100" step="1" value={item.descuento_pct} onChange={e => setItem(idx, 'descuento_pct', e.target.value)} />
+          <span className="mono sm" style={{ textAlign: 'right', color: 'var(--text-2)', paddingRight: 4 }}>{calcSub(item)}</span>
+          <button type="button" onClick={() => onChange(items.filter((_, i) => i !== idx))} className="btn-ghost" style={{ color: 'var(--coral)', width: 24, height: 24 }} disabled={items.length <= 1}>
+            <Trash2 size={12} />
           </button>
         </div>
       ))}
-      <button
-        type="button"
-        onClick={addRow}
-        className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 mt-2 transition-colors"
-      >
+      <button type="button" onClick={() => onChange([...items, EMPTY_ITEM()])}
+        style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--green)', fontWeight: 600, marginTop: 4, background: 'none', border: 'none', cursor: 'pointer' }}>
         <PlusCircle size={13} /> Agregar ítem
       </button>
     </div>
   )
 }
 
-// ── FacturaForm ───────────────────────────────────────────────────────────────
 function FacturaForm({ clientes, initial = {}, onSave, onCancel, loading }) {
   const today = new Date().toISOString().slice(0, 10)
-  const tieneItbis = initial.impuesto && Number(initial.impuesto) > 0
-  const [itbis, setItbis] = useState(!!tieneItbis)
+  const [itbis, setItbis] = useState(!!(initial.impuesto && Number(initial.impuesto) > 0))
   const [items, setItems] = useState(
-    initial.items?.length ? initial.items.map(i => ({
-      descripcion: i.descripcion,
-      cantidad: i.cantidad,
-      precio_unitario: i.precio_unitario,
-      descuento_pct: i.descuento_pct ?? 0,
-    })) : [EMPTY_ITEM()]
+    initial.items?.length
+      ? initial.items.map(i => ({ descripcion: i.descripcion, cantidad: i.cantidad, precio_unitario: i.precio_unitario, descuento_pct: i.descuento_pct ?? 0 }))
+      : [EMPTY_ITEM()]
   )
   const [form, setForm] = useState({
     concepto: '', fecha_vencimiento: '', cliente_id: '',
@@ -115,120 +66,79 @@ function FacturaForm({ clientes, initial = {}, onSave, onCancel, loading }) {
     fecha: initial.fecha ?? today,
   })
 
-  // Recalculate subtotal/impuesto/total when items change
   useEffect(() => {
-    const calcSub = (item) => {
-      const base = (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio_unitario) || 0)
-      const desc = base * ((parseFloat(item.descuento_pct) || 0) / 100)
-      return base - desc
-    }
     const hasContent = items.some(i => i.descripcion || parseFloat(i.precio_unitario) > 0)
     if (!hasContent) return
+    const calcSub = item => {
+      const base = (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio_unitario) || 0)
+      return base - base * ((parseFloat(item.descuento_pct) || 0) / 100)
+    }
     const subtotal = items.reduce((s, i) => s + calcSub(i), 0)
     const imp = itbis ? +(subtotal * ITBIS_RATE).toFixed(2) : 0
-    const total = +(subtotal + imp).toFixed(2)
-    setForm(f => ({
-      ...f,
-      subtotal: subtotal.toFixed(2),
-      impuesto: imp.toFixed(2),
-      total: total.toFixed(2),
-    }))
+    setForm(f => ({ ...f, subtotal: subtotal.toFixed(2), impuesto: imp.toFixed(2), total: (subtotal + imp).toFixed(2) }))
   }, [items, itbis])
 
-  const handleItbis = (e) => {
-    const checked = e.target.checked
-    setItbis(checked)
-  }
-
-  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    // Use first item description as concepto if empty
-    const concepto = form.concepto || items[0]?.descripcion || 'Factura'
-    onSave({ ...form, concepto, items })
-  }
+  const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
+  const handleSubmit = e => { e.preventDefault(); onSave({ ...form, concepto: form.concepto || items[0]?.descripcion || 'Factura', items }) }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      <div className="grid grid-cols-2 gap-3">
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <div>
-          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Fecha *</label>
-          <input className="input w-full" type="date" value={form.fecha} onChange={set('fecha')} required />
+          <label className="eyebrow" style={{ marginBottom: 6 }}>Fecha *</label>
+          <input className="input" type="date" value={form.fecha} onChange={set('fecha')} required />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Vencimiento</label>
-          <input className="input w-full" type="date" value={form.fecha_vencimiento ?? ''} onChange={set('fecha_vencimiento')} />
+          <label className="eyebrow" style={{ marginBottom: 6 }}>Vencimiento</label>
+          <input className="input" type="date" value={form.fecha_vencimiento ?? ''} onChange={set('fecha_vencimiento')} />
         </div>
       </div>
-
       <div>
-        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Cliente</label>
-        <select className="input w-full" value={form.cliente_id ?? ''} onChange={set('cliente_id')}>
+        <label className="eyebrow" style={{ marginBottom: 6 }}>Cliente</label>
+        <select className="input" value={form.cliente_id ?? ''} onChange={set('cliente_id')}>
           <option value="">— Sin cliente —</option>
           {clientes.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
         </select>
       </div>
-
       <div>
-        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Concepto / Descripción general</label>
-        <input className="input w-full" value={form.concepto ?? ''} onChange={set('concepto')} placeholder="Servicios de diseño web, etc." />
+        <label className="eyebrow" style={{ marginBottom: 6 }}>Concepto general</label>
+        <input className="input" value={form.concepto ?? ''} onChange={set('concepto')} placeholder="Servicios de diseño, etc." />
       </div>
-
-      {/* Line items */}
       <div>
-        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Ítems</label>
+        <label className="eyebrow" style={{ marginBottom: 8 }}>Ítems</label>
         <ItemsTable items={items} onChange={setItems} />
       </div>
-
-      {/* ITBIS */}
-      <label className="flex items-center gap-3 p-3 bg-slate-800 rounded-xl cursor-pointer select-none hover:bg-slate-700/80 transition-colors border border-slate-700">
-        <input
-          type="checkbox"
-          checked={itbis}
-          onChange={handleItbis}
-          className="w-4 h-4 rounded accent-indigo-500"
-        />
-        <div className="flex-1">
-          <span className="text-sm font-medium text-slate-200">Aplicar ITBIS (18%)</span>
-          {itbis && form.subtotal && (
-            <span className="text-xs text-slate-400 ml-2">
-              = ${(parseFloat(form.subtotal) * ITBIS_RATE).toFixed(2)}
-            </span>
-          )}
-        </div>
-        {itbis && <span className="text-xs font-semibold text-indigo-400 bg-indigo-500/20 px-2 py-1 rounded-lg">RD</span>}
+      <label style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 11, cursor: 'pointer' }}>
+        <input type="checkbox" checked={itbis} onChange={e => setItbis(e.target.checked)} style={{ width: 16, height: 16, accentColor: 'var(--green)' }} />
+        <span style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text)' }}>Aplicar ITBIS (18%)</span>
+        {itbis && form.subtotal && <span className="muted sm" style={{ marginLeft: 'auto' }}>= RD${(parseFloat(form.subtotal) * ITBIS_RATE).toFixed(2)}</span>}
+        {itbis && <span className="pill soft" style={{ marginLeft: itbis && form.subtotal ? 0 : 'auto' }}>RD</span>}
       </label>
-
-      {/* Totals */}
-      <div className="bg-slate-800 rounded-xl p-4 space-y-2 border border-slate-700">
-        <div className="flex justify-between text-sm">
-          <span className="text-slate-400">Subtotal</span>
-          <span className="text-slate-200">${parseFloat(form.subtotal || 0).toFixed(2)}</span>
-        </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-slate-400">ITBIS (18%)</span>
-          <span className="text-slate-200">${parseFloat(form.impuesto || 0).toFixed(2)}</span>
-        </div>
-        <div className="flex justify-between text-base font-bold border-t border-slate-700 pt-2 mt-2">
-          <span className="text-white">Total</span>
-          <span className="text-indigo-400">${parseFloat(form.total || 0).toFixed(2)}</span>
+      <div style={{ background: 'var(--surface-2)', borderRadius: 12, padding: 14, display: 'flex', flexDirection: 'column', gap: 8, border: '1px solid var(--border-soft)' }}>
+        {[['Subtotal', form.subtotal || '0'], ['ITBIS (18%)', form.impuesto || '0']].map(([l, v]) => (
+          <div key={l} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5 }}>
+            <span className="muted">{l}</span>
+            <span>RD${parseFloat(v).toFixed(2)}</span>
+          </div>
+        ))}
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, fontWeight: 700, borderTop: '1px solid var(--border-soft)', paddingTop: 10, marginTop: 2 }}>
+          <span>Total</span>
+          <span style={{ color: 'var(--green)' }} className="mono">RD${parseFloat(form.total || 0).toFixed(2)}</span>
         </div>
       </div>
-
       <div>
-        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Estado</label>
-        <select className="input w-full" value={form.estado} onChange={set('estado')}>
+        <label className="eyebrow" style={{ marginBottom: 6 }}>Estado</label>
+        <select className="input" value={form.estado} onChange={set('estado')}>
           {ESTADOS.map(e => <option key={e} value={e}>{e.charAt(0).toUpperCase() + e.slice(1)}</option>)}
         </select>
       </div>
       <div>
-        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Notas</label>
-        <textarea className="input w-full resize-none" rows={2} value={form.notas ?? ''} onChange={set('notas')} placeholder="Condiciones, términos de pago..." />
+        <label className="eyebrow" style={{ marginBottom: 6 }}>Notas</label>
+        <textarea className="input" rows={2} value={form.notas ?? ''} onChange={set('notas')} placeholder="Condiciones de pago..." />
       </div>
-      <div className="flex gap-3 pt-2">
-        <button type="submit" disabled={loading} className="btn-primary flex-1">
-          {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" /> : 'Guardar factura'}
+      <div style={{ display: 'flex', gap: 10, paddingTop: 4 }}>
+        <button type="submit" disabled={loading} className="btn-primary" style={{ flex: 1 }}>
+          {loading ? <span style={{ width: 16, height: 16, border: '2px solid rgba(6,40,31,.3)', borderTopColor: '#06281f', borderRadius: '50%', animation: 'spin .7s linear infinite', display: 'inline-block' }} /> : 'Guardar factura'}
         </button>
         <button type="button" onClick={onCancel} className="btn-secondary">Cancelar</button>
       </div>
@@ -236,7 +146,6 @@ function FacturaForm({ clientes, initial = {}, onSave, onCancel, loading }) {
   )
 }
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
 export default function Facturacion() {
   const [facturas, setFacturas] = useState([])
   const [clientes, setClientes] = useState([])
@@ -247,183 +156,131 @@ export default function Facturacion() {
   const [modal, setModal] = useState(null)
 
   const load = async () => {
-    const [f, c] = await Promise.all([
-      api.get('/facturacion/'),
-      api.get('/clientes/'),
-    ])
-    setFacturas(f.data)
-    setClientes(c.data)
-    setLoading(false)
+    const [f, c] = await Promise.all([api.get('/facturacion/'), api.get('/clientes/')])
+    setFacturas(f.data); setClientes(c.data); setLoading(false)
   }
   useEffect(() => { load() }, [])
 
-  const handleSave = async (data) => {
+  const handleSave = async data => {
     setSaving(true)
     try {
       if (modal?.id) await api.put(`/facturacion/${modal.id}`, data)
       else await api.post('/facturacion/', data)
-      await load()
-      setModal(null)
+      await load(); setModal(null)
     } finally { setSaving(false) }
   }
-
-  const handleDelete = async (id) => {
+  const handleDelete = async id => {
     if (!confirm('¿Eliminar esta factura?')) return
-    await api.delete(`/facturacion/${id}`)
-    setFacturas(fs => fs.filter(f => f.id !== id))
+    await api.delete(`/facturacion/${id}`); setFacturas(fs => fs.filter(f => f.id !== id))
   }
-
-  const handlePdf = (facturaId, numero) => {
+  const handlePdf = (id, numero) => {
     const token = localStorage.getItem('token')
-    fetch(`/api/v1/facturacion/${facturaId}/pdf`, {
-      headers: { Authorization: `Bearer ${token}` },
-    }).then(r => r.blob()).then(blob => {
-      const a = document.createElement('a')
-      a.href = URL.createObjectURL(blob)
-      a.download = `factura-${numero}.pdf`
-      a.click()
-    })
+    fetch(`/api/v1/facturacion/${id}/pdf`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.blob()).then(blob => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `factura-${numero}.pdf`; a.click() })
   }
 
   const filtered = facturas.filter(f => {
-    const matchSearch = (f.concepto || '').toLowerCase().includes(search.toLowerCase()) || (f.numero || '').includes(search)
-    const matchEstado = !filtroEstado || f.estado === filtroEstado
-    return matchSearch && matchEstado
+    const ms = (f.concepto || '').toLowerCase().includes(search.toLowerCase()) || (f.numero || '').includes(search)
+    const me = !filtroEstado || f.estado === filtroEstado
+    return ms && me
   })
-
+  const fmt = n => 'RD$' + Number(n).toLocaleString('es-DO', { maximumFractionDigits: 0 })
   const totalPagadas = facturas.filter(f => f.estado === 'pagada').reduce((s, f) => s + Number(f.total), 0)
   const totalPendientes = facturas.filter(f => f.estado === 'enviada').reduce((s, f) => s + Number(f.total), 0)
 
   return (
     <Layout>
       <ModuleGuard module="facturacion">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
-            <h1 className="text-2xl font-bold text-white">Facturación</h1>
-            <p className="text-sm text-slate-400">{facturas.length} facturas en total</p>
+            <span className="eyebrow">Documentos comerciales</span>
+            <h2>Facturación</h2>
           </div>
-          <button onClick={() => setModal('nueva')} className="btn-primary flex items-center gap-2">
-            <Plus className="w-4 h-4" /> Nueva factura
+          <button className="btn-primary" onClick={() => setModal('nueva')}>
+            <Plus size={16} /> Nueva factura
           </button>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          {[
-            { label: 'Cobradas', value: '$' + totalPagadas.toLocaleString('es-DO', { minimumFractionDigits: 2 }), color: 'text-emerald-400', bg: 'from-emerald-500/10 to-emerald-600/5 border-emerald-500/20' },
-            { label: 'Por cobrar', value: '$' + totalPendientes.toLocaleString('es-DO', { minimumFractionDigits: 2 }), color: 'text-amber-400', bg: 'from-amber-500/10 to-amber-600/5 border-amber-500/20' },
-            { label: 'Total facturas', value: facturas.length, color: 'text-indigo-400', bg: 'from-indigo-500/10 to-indigo-600/5 border-indigo-500/20' },
-          ].map(s => (
-            <div key={s.label} className={`card bg-gradient-to-br ${s.bg} border`}>
-              <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-              <p className="text-xs text-slate-500 mt-1">{s.label}</p>
+        <div className="grid-main" style={{ marginBottom: 20 }}>
+          <section className="card span-full split-stats">
+            <div>
+              <span className="eyebrow">Facturado hoy</span>
+              <b className="mono big">{fmt(facturas.reduce((s, f) => s + Number(f.total), 0))}</b>
+              <span className="muted sm">{facturas.length} documentos</span>
             </div>
-          ))}
+            <div>
+              <span className="eyebrow">Ticket promedio</span>
+              <b className="mono big">{facturas.length ? fmt(facturas.reduce((s, f) => s + Number(f.total), 0) / facturas.length) : 'RD$0'}</b>
+            </div>
+            <div>
+              <span className="eyebrow">Por cobrar</span>
+              <b className="mono big warn">{fmt(totalPendientes)}</b>
+              <span className="muted sm warn">enviadas</span>
+            </div>
+            <div>
+              <span className="eyebrow">Cobradas</span>
+              <b className="mono big pos">{fmt(totalPagadas)}</b>
+              <span className="muted sm">{facturas.filter(f => f.estado === 'pagada').length} facturas</span>
+            </div>
+          </section>
         </div>
 
-        {/* Filters */}
-        <div className="flex gap-3 mb-6">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-            <input className="input pl-9 w-full" placeholder="Buscar por concepto o número..." value={search} onChange={e => setSearch(e.target.value)} />
+        <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+          <div style={{ position: 'relative', flex: 1, maxWidth: 340 }}>
+            <input className="input" placeholder="Buscar por concepto o número..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
-          <select className="input w-48" value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}>
+          <select className="input" style={{ width: 180 }} value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}>
             <option value="">Todos los estados</option>
             {ESTADOS.map(e => <option key={e} value={e}>{e.charAt(0).toUpperCase() + e.slice(1)}</option>)}
           </select>
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-20">
-            <span className="w-8 h-8 border-2 border-indigo-500/30 border-t-indigo-400 rounded-full animate-spin" />
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0' }}>
+            <span style={{ width: 32, height: 32, border: '2px solid var(--border)', borderTopColor: 'var(--green)', borderRadius: '50%', animation: 'spin .7s linear infinite', display: 'block' }} />
           </div>
         ) : filtered.length === 0 ? (
-          <EmptyState
-            icon="🧾"
-            title="Sin facturas"
-            description="Crea tu primera factura para empezar a registrar tus cobros."
-            action={<button onClick={() => setModal('nueva')} className="btn-primary flex items-center gap-2"><Plus className="w-4 h-4" /> Crear factura</button>}
+          <EmptyState icon="🧾" title="Sin facturas" description="Crea tu primera factura para empezar a registrar tus cobros."
+            action={<button className="btn-primary" onClick={() => setModal('nueva')}><Plus size={16} /> Crear factura</button>}
           />
         ) : (
-          <div className="card overflow-hidden p-0">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-700/60">
-                  {['Número', 'Concepto', 'Cliente', 'Fecha', 'Total', 'Estado', ''].map(h => (
-                    <th key={h} className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3 first:pl-5 last:pr-5">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-700/40">
-                {filtered.map(f => {
-                  const cliente = clientes.find(c => c.id === f.cliente_id)
-                  const cfg = ESTADO_CFG[f.estado] || ESTADO_CFG.borrador
-                  const Icon = cfg.icon
-                  return (
-                    <tr key={f.id} className="hover:bg-slate-800/40 transition-colors group">
-                      <td className="px-4 py-3 pl-5 text-xs font-mono text-slate-500">{f.numero}</td>
-                      <td className="px-4 py-3 text-sm font-medium text-white max-w-[180px] truncate">{f.concepto}</td>
-                      <td className="px-4 py-3 text-sm text-slate-400">{cliente?.nombre ?? '—'}</td>
-                      <td className="px-4 py-3 text-sm text-slate-400">
-                        {f.fecha ? new Date(f.fecha + 'T00:00:00').toLocaleDateString('es-DO') : '—'}
-                      </td>
-                      <td className="px-4 py-3 text-sm font-semibold text-white">
-                        ${Number(f.total).toLocaleString('es-DO', { minimumFractionDigits: 2 })}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${cfg.cls}`}>
-                          <Icon size={10} />{f.estado}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 pr-5">
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => setModal(f)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
-                            title="Editar"
-                          >
-                            <Pencil size={13} />
-                          </button>
-                          <button
-                            onClick={() => handlePdf(f.id, f.numero)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-300 hover:bg-slate-700 transition-colors"
-                            title="Descargar PDF"
-                          >
-                            <Download size={13} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(f.id)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-700 transition-colors"
-                            title="Eliminar"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+          <section className="card">
+            <div className="tbl-wrap">
+              <table className="tbl">
+                <thead>
+                  <tr>{['Folio', 'Cliente', 'Fecha', 'Artículos', 'Total', 'Estado', ''].map(h => <th key={h}>{h}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {filtered.map(f => {
+                    const cliente = clientes.find(c => c.id === f.cliente_id)
+                    const pill = ESTADO_PILL[f.estado] ?? 'soft'
+                    const itemCount = f.items?.length ?? '—'
+                    return (
+                      <tr key={f.id}>
+                        <td className="mono muted">#{f.numero}</td>
+                        <td className="strong">{cliente?.nombre ?? '—'}</td>
+                        <td className="muted">{f.fecha ? new Date(f.fecha + 'T00:00:00').toLocaleDateString('es-DO') : '—'}</td>
+                        <td className="mono">{itemCount}</td>
+                        <td className="mono strong">{fmt(f.total)}</td>
+                        <td><span className={`pill ${pill}`}>{f.estado.charAt(0).toUpperCase() + f.estado.slice(1)}</span></td>
+                        <td>
+                          <div style={{ display: 'flex', gap: 4 }}>
+                            <button onClick={() => setModal(f)} className="btn-ghost" title="Editar"><Pencil size={14} /></button>
+                            <button onClick={() => handlePdf(f.id, f.numero)} className="btn-ghost" style={{ color: 'var(--blue)' }} title="Descargar PDF"><Download size={14} /></button>
+                            <button onClick={() => handleDelete(f.id)} className="btn-ghost" style={{ color: 'var(--coral)' }} title="Eliminar"><Trash2 size={14} /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
         )}
 
-        <Modal
-          open={!!modal}
-          onClose={() => setModal(null)}
-          title={modal?.id ? 'Editar factura' : 'Nueva factura'}
-          size="xl"
-        >
-          <FacturaForm
-            clientes={clientes}
-            initial={modal?.id ? modal : {}}
-            onSave={handleSave}
-            onCancel={() => setModal(null)}
-            loading={saving}
-          />
+        <Modal open={!!modal} onClose={() => setModal(null)} title={modal?.id ? 'Editar factura' : 'Nueva factura'} size="xl">
+          <FacturaForm clientes={clientes} initial={modal?.id ? modal : {}} onSave={handleSave} onCancel={() => setModal(null)} loading={saving} />
         </Modal>
       </ModuleGuard>
     </Layout>

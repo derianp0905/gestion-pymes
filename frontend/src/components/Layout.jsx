@@ -1,54 +1,59 @@
+import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useSubscription } from '../hooks/useSubscription'
 import {
   LayoutDashboard, Users, FileText, Wallet, Package,
-  CalendarDays, Building2, Users2, BarChart3, GitBranch,
-  ShieldCheck, LogOut, ChevronRight, Lock, Settings
+  CalendarClock, Building2, UserCog, Sparkles, GitBranch,
+  Settings, ShieldCheck, LogOut, ChevronLeft, CircleDollarSign,
+  Search, Bell, Sun, Moon, Zap, Lock,
 } from 'lucide-react'
 
-const NAV = [
-  { section: 'Principal' },
-  { to: '/dashboard',      label: 'Dashboard',     icon: LayoutDashboard, module: null },
-  { section: 'Módulos Core' },
-  { to: '/clientes',       label: 'Clientes',       icon: Users,           module: 'clientes' },
-  { to: '/facturacion',    label: 'Facturación',    icon: FileText,        module: 'facturacion' },
-  { to: '/caja',           label: 'Caja',           icon: Wallet,          module: 'caja' },
-  { section: 'Especializados' },
-  { to: '/inventario',     label: 'Inventario',     icon: Package,         module: 'inventario' },
-  { to: '/agenda',         label: 'Agenda',         icon: CalendarDays,    module: 'agenda' },
-  { to: '/establo',        label: 'Establo',        icon: Building2,       module: 'establo' },
-  { section: 'Premium' },
-  { to: '/empleados',      label: 'Empleados',      icon: Users2,          module: 'empleados' },
-  { to: '/reportes',       label: 'Reportes IA',    icon: BarChart3,       module: 'reportes_ia' },
-  { to: '/sucursales',     label: 'Multi-sucursal', icon: GitBranch,       module: 'multi_sucursal' },
-  { section: 'Configuración' },
-  { to: '/perfil-empresa', label: 'Mi Empresa',     icon: Settings,        module: null },
+const CORE = ['clientes', 'facturacion', 'caja']
+const ESP  = ['inventario', 'agenda']
+const PREM = ['empleados', 'reportes_ia', 'multi_sucursal']
+
+const reqPlanFor = (key) =>
+  CORE.includes(key) ? 'Basic' : ESP.includes(key) ? 'Pro' : 'Business'
+
+const CATALOG = [
+  { label: null, items: [{ to: '/dashboard', key: 'resumen', label: 'Resumen', icon: LayoutDashboard, free: true }] },
+  { label: 'Core', items: [
+    { to: '/clientes',    key: 'clientes',    label: 'Clientes',    icon: Users },
+    { to: '/facturacion', key: 'facturacion', label: 'Facturación', icon: FileText },
+    { to: '/caja',        key: 'caja',        label: 'Caja',        icon: Wallet },
+  ]},
+  { label: 'Especializados', items: [
+    { to: '/inventario', key: 'inventario', label: 'Inventario', icon: Package },
+    { to: '/agenda',     key: 'agenda',     label: 'Agenda',     icon: CalendarClock },
+  ]},
+  { label: 'Premium', items: [
+    { to: '/empleados',   key: 'empleados',       label: 'Empleados',      icon: UserCog },
+    { to: '/reportes',    key: 'reportes_ia',     label: 'Reportes IA',    icon: Sparkles },
+    { to: '/sucursales',  key: 'multi_sucursal',  label: 'Multi-sucursal', icon: GitBranch },
+  ]},
+  { label: null, items: [{ to: '/perfil-empresa', key: 'config', label: 'Configuración', icon: Settings, free: true }] },
 ]
 
-function NavItem({ item, hasModule }) {
+function NavItem({ item, hasModule, collapsed }) {
   const location = useLocation()
-  const active = location.pathname === item.to
-  const locked = item.module && !hasModule(item.module)
+  const active = location.pathname === item.to || (item.to === '/dashboard' && location.pathname === '/')
+  const needsPlan = !item.free && item.key && !hasModule(item.key)
+  const badge = needsPlan ? reqPlanFor(item.key) : null
 
   return (
     <Link
       to={item.to}
-      className={[
-        'group flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all duration-150',
-        active
-          ? 'bg-white/10 text-white font-medium'
-          : 'text-slate-400 hover:text-white hover:bg-white/5',
-      ].join(' ')}
+      className={`nav-item ${active ? 'active' : ''} ${needsPlan ? 'locked' : ''}`}
+      title={collapsed ? item.label : undefined}
     >
-      <div className="flex items-center gap-3">
-        <item.icon className={`w-4 h-4 shrink-0 ${active ? 'text-indigo-300' : 'text-slate-500 group-hover:text-slate-300'}`} />
-        <span>{item.label}</span>
-      </div>
-      {locked
-        ? <Lock className="w-3 h-3 text-slate-600" />
-        : active && <ChevronRight className="w-3 h-3 text-slate-400" />
-      }
+      <item.icon size={18} style={{ flexShrink: 0 }} />
+      <span>{item.label}</span>
+      {badge && !collapsed && (
+        <span className={`badge-plan ${badge.toLowerCase()}`}>
+          <Lock size={9} />{badge}
+        </span>
+      )}
     </Link>
   )
 }
@@ -57,111 +62,131 @@ export default function Layout({ children }) {
   const { user, logout } = useAuth()
   const { subscription, hasModule } = useSubscription()
   const navigate = useNavigate()
+  const location = useLocation()
+  const [collapsed, setCollapsed] = useState(false)
+  const [light, setLight] = useState(false)
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
+  const handleLogout = () => { logout(); navigate('/login') }
 
-  const statusColor = {
-    active: 'bg-emerald-400',
-    trial:  'bg-amber-400',
-    expired:'bg-rose-400',
-  }[subscription?.status] ?? 'bg-slate-400'
+  const planLabel = subscription?.plan ?? '—'
+  const trialEnds = subscription?.trial_ends_at
+    ? new Date(subscription.trial_ends_at).toLocaleDateString('es-DO', { day: 'numeric', month: 'short' })
+    : null
+
+  const pageTitle = (() => {
+    const p = location.pathname
+    if (p === '/dashboard' || p === '/') return 'Resumen general'
+    if (p.startsWith('/clientes')) return 'Clientes'
+    if (p.startsWith('/facturacion')) return 'Facturación'
+    if (p.startsWith('/caja')) return 'Caja'
+    if (p.startsWith('/inventario')) return 'Inventario'
+    if (p.startsWith('/agenda')) return 'Agenda'
+    if (p.startsWith('/empleados')) return 'Empleados'
+    if (p.startsWith('/reportes')) return 'Reportes IA'
+    if (p.startsWith('/sucursales')) return 'Multi-sucursal'
+    if (p.startsWith('/perfil-empresa')) return 'Configuración'
+    if (p.startsWith('/superadmin')) return 'Super Admin'
+    return ''
+  })()
+
+  const today = new Date().toLocaleDateString('es-DO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  const initials = user?.role === 'superadmin' ? 'SA' : (user?.nombre?.[0] ?? 'A').toUpperCase()
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-60 shrink-0 bg-slate-900 flex flex-col h-full">
-        {/* Logo */}
-        <div className="flex items-center gap-2.5 px-4 py-5 border-b border-white/5">
-          <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center shrink-0">
-            <Building2 className="w-4 h-4 text-white" />
+    <div className={`app ${collapsed ? 'is-collapsed' : ''} ${light ? 'light' : ''}`}>
+      {/* ── Sidebar ── */}
+      <aside className="sidebar">
+        {/* Brand */}
+        <div className="brand">
+          <div className="logo"><CircleDollarSign size={20} /></div>
+          <div className="brand-txt">
+            <b>Gestión<span>OS</span></b>
+            <span className="plan-sub">{planLabel}</span>
           </div>
-          <div className="min-w-0">
-            <p className="text-white font-semibold text-sm truncate">Gestión PYMES</p>
-            <p className="text-slate-500 text-xs truncate">{subscription?.plan ?? 'Sin plan'}</p>
-          </div>
+          <button className="collapse-btn" onClick={() => setCollapsed(c => !c)} aria-label="Contraer menú">
+            <ChevronLeft size={16} />
+          </button>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
-          {NAV.map((item, i) =>
-            item.section ? (
-              <p key={i} className="text-[10px] font-semibold uppercase tracking-widest text-slate-600 px-3 pt-4 pb-1.5 first:pt-1">
-                {item.section}
-              </p>
-            ) : (
-              <NavItem key={item.to} item={item} hasModule={hasModule} />
-            )
-          )}
+        <nav>
+          {CATALOG.map((group, gi) => (
+            <div key={gi}>
+              {group.label && <span className="nav-label">{group.label}</span>}
+              {group.items.map(item => (
+                <NavItem key={item.key} item={item} hasModule={hasModule} collapsed={collapsed} />
+              ))}
+            </div>
+          ))}
 
           {user?.role === 'superadmin' && (
             <>
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-600 px-3 pt-4 pb-1.5">
-                Administración
-              </p>
+              <span className="nav-label">Administración</span>
               <Link
                 to="/superadmin"
-                className={[
-                  'flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all duration-150',
-                  location.pathname.startsWith('/superadmin')
-                    ? 'bg-white/10 text-white font-medium'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5',
-                ].join(' ')}
+                className={`nav-item ${location.pathname.startsWith('/superadmin') ? 'active' : ''}`}
+                title={collapsed ? 'Super Admin' : undefined}
               >
-                <ShieldCheck className="w-4 h-4 shrink-0 text-orange-400" />
-                Super Admin
+                <ShieldCheck size={18} style={{ flexShrink: 0, color: '#fb923c' }} />
+                <span>Super Admin</span>
               </Link>
             </>
           )}
         </nav>
 
-        {/* Subscription status */}
-        {subscription && (
-          <div className="mx-3 mb-3 p-3 bg-white/5 rounded-xl border border-white/5">
-            <div className="flex items-center gap-2 mb-1">
-              <span className={`w-2 h-2 rounded-full ${statusColor}`} />
-              <span className="text-xs text-slate-300 font-medium capitalize">{subscription.status}</span>
+        {/* Trial notice */}
+        {!collapsed && subscription?.status === 'trial' && (
+          <div className="sub-status">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--amber)', fontWeight: 600, marginBottom: 3 }}>
+              <Zap size={12} /> Trial activo
             </div>
-            {subscription.status === 'trial' && subscription.trial_ends_at && (
-              <p className="text-xs text-slate-500">
-                Trial hasta {new Date(subscription.trial_ends_at).toLocaleDateString('es-419', { day: 'numeric', month: 'short' })}
-              </p>
-            )}
+            {trialEnds && <span className="muted sm">Vence el {trialEnds}</span>}
           </div>
         )}
 
         {/* User */}
-        <div className="border-t border-white/5 px-3 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 bg-indigo-500/20 rounded-full flex items-center justify-center shrink-0">
-              <span className="text-indigo-300 text-xs font-bold">
-                {user?.role === 'superadmin' ? 'SA' : 'A'}
-              </span>
-            </div>
-            <div className="min-w-0">
-              <p className="text-white text-xs font-medium truncate">
-                {user?.role === 'superadmin' ? 'Super Admin' : 'Admin'}
-              </p>
-              <p className="text-slate-500 text-xs capitalize">{user?.role}</p>
-            </div>
+        <div className="user-section" style={{ marginTop: subscription?.status === 'trial' ? 10 : 'auto' }}>
+          <div className="avatar">{initials}</div>
+          <div className="grow">
+            <b>{user?.role === 'superadmin' ? 'Super Admin' : 'Administrador'}</b>
+            <span className="muted sm" style={{ textTransform: 'capitalize' }}>{user?.role}</span>
           </div>
-          <button
-            onClick={handleLogout}
-            title="Cerrar sesión"
-            className="text-slate-600 hover:text-rose-400 transition-colors p-1 rounded-lg hover:bg-white/5"
+          <button onClick={handleLogout} className="logout-icon" title="Cerrar sesión"
+            style={{ color: 'var(--text-3)', padding: 4, borderRadius: 8, transition: '.14s' }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--coral)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut size={16} />
           </button>
         </div>
       </aside>
 
-      {/* Main */}
-      <main className="flex-1 overflow-y-auto bg-slate-950">
-        <div className="p-8">
-          {children}
-        </div>
+      {/* ── Main ── */}
+      <main className="main">
+        {/* Topbar */}
+        <header className="topbar">
+          <div>
+            <span className="muted sm" style={{ textTransform: 'capitalize' }}>{today}</span>
+            <h1>{pageTitle}</h1>
+          </div>
+          <div className="top-actions">
+            <div className="searchbox">
+              <Search size={16} />
+              <input placeholder="Buscar factura, cliente…" readOnly onClick={() => navigate('/clientes')} style={{ cursor: 'pointer' }} />
+            </div>
+            <span className="plan-chip">{planLabel}</span>
+            <button className="icon-btn" aria-label="Cambiar tema" onClick={() => setLight(l => !l)}>
+              {light ? <Moon size={18} /> : <Sun size={18} />}
+            </button>
+            <button className="icon-btn" aria-label="Notificaciones">
+              <Bell size={18} />
+              {subscription?.status === 'trial' && <span className="badge-dot" />}
+            </button>
+          </div>
+        </header>
+
+        {/* Content */}
+        <div className="content">{children}</div>
       </main>
     </div>
   )

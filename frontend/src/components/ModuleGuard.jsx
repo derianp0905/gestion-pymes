@@ -1,5 +1,5 @@
 import { useSubscription } from '../hooks/useSubscription'
-import { Lock, ArrowRight, Zap } from 'lucide-react'
+import { Lock, Sparkles } from 'lucide-react'
 
 const PLAN_FOR_MODULE = {
   clientes: 'Basic', facturacion: 'Basic', caja: 'Basic',
@@ -7,16 +7,19 @@ const PLAN_FOR_MODULE = {
   empleados: 'Business', reportes_ia: 'Business', multi_sucursal: 'Business',
 }
 
-const MODULE_INFO = {
-  clientes:      { label: 'Clientes',        desc: 'Gestiona tu cartera de clientes, contactos y seguimiento comercial.' },
-  facturacion:   { label: 'Facturación',      desc: 'Crea cotizaciones y facturas profesionales en segundos.' },
-  caja:          { label: 'Caja',             desc: 'Controla tus ingresos y gastos con reportes automáticos.' },
-  inventario:    { label: 'Inventario',       desc: 'Control de stock en tiempo real con alertas de reposición.' },
-  agenda:        { label: 'Agenda / Citas',   desc: 'Gestiona citas y servicios con calendario interactivo.' },
-  establo:       { label: 'Establo',          desc: 'Módulo especializado para gestión de caballerizas.' },
-  empleados:     { label: 'Empleados',        desc: 'Nómina, asistencia y gestión de personal.' },
-  reportes_ia:   { label: 'Reportes con IA', desc: 'Análisis avanzado de tu negocio impulsado por inteligencia artificial.' },
-  multi_sucursal:{ label: 'Multi-sucursal',  desc: 'Administra múltiples sucursales desde un solo panel.' },
+const PERKS = {
+  inventario:    'Control de existencias, alertas de stock bajo y órdenes de compra automáticas.',
+  agenda:        'Citas y reservas con recordatorios — ideal para servicios, talleres y clínicas.',
+  establo:       'Módulo especializado para la gestión de caballerizas y servicios ecuestres.',
+  empleados:     'Gestión de personal y nómina básica, organizada por sucursal.',
+  reportes_ia:   'Análisis y recomendaciones automáticas sobre la salud de tu negocio.',
+  multi_sucursal:'Administra varias sucursales con métricas comparativas en un solo lugar.',
+}
+
+const MODULE_LABELS = {
+  clientes: 'Clientes', facturacion: 'Facturación', caja: 'Caja',
+  inventario: 'Inventario', agenda: 'Agenda', establo: 'Establo',
+  empleados: 'Empleados', reportes_ia: 'Reportes IA', multi_sucursal: 'Multi-sucursal',
 }
 
 export default function ModuleGuard({ module, children }) {
@@ -24,40 +27,27 @@ export default function ModuleGuard({ module, children }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <span className="w-6 h-6 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 240 }}>
+        <span style={{ width: 28, height: 28, border: '2px solid var(--border)', borderTopColor: 'var(--green)', borderRadius: '50%', display: 'block', animation: 'spin .7s linear infinite' }} />
       </div>
     )
   }
 
   if (!hasModule(module)) {
-    const info = MODULE_INFO[module] ?? { label: module, desc: '' }
-    const plan = PLAN_FOR_MODULE[module] ?? 'Pro'
+    const label   = MODULE_LABELS[module] ?? module
+    const reqPlan = PLAN_FOR_MODULE[module] ?? 'Pro'
+    const desc    = PERKS[module] ?? 'Actualiza tu plan para acceder a este módulo.'
 
     return (
-      <div className="flex items-center justify-center min-h-[60vh] p-8">
-        <div className="max-w-md text-center">
-          <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <Lock className="w-7 h-7 text-indigo-400" />
-          </div>
-          <h2 className="text-xl font-bold text-slate-900 mb-2">{info.label}</h2>
-          <p className="text-slate-500 mb-6">{info.desc}</p>
-          <div className="bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-100 rounded-2xl p-5 mb-6 text-left">
-            <div className="flex items-center gap-2 mb-2">
-              <Zap className="w-4 h-4 text-indigo-500" />
-              <span className="text-sm font-semibold text-indigo-700">Disponible en Plan {plan}</span>
-            </div>
-            <p className="text-xs text-indigo-600">
-              Actualiza tu plan para desbloquear este módulo y muchos más.
-            </p>
-          </div>
-          <a
-            href="/upgrade"
-            className="btn-primary inline-flex items-center gap-2"
-          >
-            Ver planes y precios <ArrowRight className="w-4 h-4" />
-          </a>
-        </div>
+      <div className="upgrade">
+        <div className="up-icon"><Lock size={26} /></div>
+        <span className="pill soft up-plan">Plan {reqPlan}</span>
+        <h2>El módulo {label} no está en tu plan</h2>
+        <p className="muted">{desc}</p>
+        <button className="btn-primary lg" onClick={() => window.location.href = '/perfil-empresa'}>
+          <Sparkles size={16} /> Mejorar a {reqPlan}
+        </button>
+        <span className="muted sm up-foot">Tu plan actual no lo incluye. Cámbialo desde Configuración.</span>
       </div>
     )
   }

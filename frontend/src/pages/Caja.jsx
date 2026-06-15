@@ -14,55 +14,55 @@ const CATEGORIAS = {
 function MovimientoForm({ initial = {}, onSave, onCancel, loading }) {
   const today = new Date().toISOString().slice(0, 10)
   const [form, setForm] = useState({ tipo: 'ingreso', categoria: '', descripcion: '', monto: '', fecha: today, notas: '', ...initial })
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
-
+  const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onSave(form) }} className="space-y-4">
+    <form onSubmit={e => { e.preventDefault(); onSave(form) }} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div>
-        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Tipo</label>
-        <div className="grid grid-cols-2 gap-2">
+        <label className="eyebrow" style={{ marginBottom: 8 }}>Tipo</label>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {['ingreso', 'gasto'].map(t => (
             <button key={t} type="button"
-              onClick={() => setForm({ ...form, tipo: t, categoria: '' })}
-              className={[
-                'py-2.5 rounded-xl text-sm font-medium border-2 transition-all',
-                form.tipo === t
-                  ? t === 'ingreso' ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300' : 'border-rose-500 bg-rose-500/20 text-rose-300'
-                  : 'border-slate-700 text-slate-500 hover:border-slate-600',
-              ].join(' ')}>
+              onClick={() => setForm(f => ({ ...f, tipo: t, categoria: '' }))}
+              style={{
+                padding: '10px', borderRadius: 11, fontSize: 13.5, fontWeight: 600,
+                border: `2px solid ${form.tipo === t ? (t === 'ingreso' ? '#34D399' : '#FB7185') : 'var(--border-soft)'}`,
+                background: form.tipo === t ? (t === 'ingreso' ? 'rgba(52,211,153,.12)' : 'rgba(251,113,133,.12)') : 'transparent',
+                color: form.tipo === t ? (t === 'ingreso' ? '#34D399' : '#FB7185') : 'var(--text-3)',
+                transition: '.14s',
+              }}>
               {t === 'ingreso' ? '↑ Ingreso' : '↓ Gasto'}
             </button>
           ))}
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <div>
-          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Monto *</label>
-          <input className="input w-full" type="number" step="0.01" min="0.01" value={form.monto} onChange={set('monto')} placeholder="0.00" required />
+          <label className="eyebrow" style={{ marginBottom: 6 }}>Monto *</label>
+          <input className="input" type="number" step="0.01" min="0.01" value={form.monto} onChange={set('monto')} placeholder="0.00" required />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Fecha *</label>
-          <input className="input w-full" type="date" value={form.fecha} onChange={set('fecha')} required />
+          <label className="eyebrow" style={{ marginBottom: 6 }}>Fecha *</label>
+          <input className="input" type="date" value={form.fecha} onChange={set('fecha')} required />
         </div>
       </div>
       <div>
-        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Descripción *</label>
-        <input className="input w-full" value={form.descripcion} onChange={set('descripcion')} placeholder="¿De qué es este movimiento?" required />
+        <label className="eyebrow" style={{ marginBottom: 6 }}>Descripción *</label>
+        <input className="input" value={form.descripcion} onChange={set('descripcion')} placeholder="¿De qué es este movimiento?" required />
       </div>
       <div>
-        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Categoría</label>
-        <select className="input w-full" value={form.categoria} onChange={set('categoria')}>
+        <label className="eyebrow" style={{ marginBottom: 6 }}>Categoría</label>
+        <select className="input" value={form.categoria} onChange={set('categoria')}>
           <option value="">— Sin categoría —</option>
           {CATEGORIAS[form.tipo].map(c => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
       <div>
-        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Notas</label>
-        <textarea className="input w-full resize-none" rows={2} value={form.notas} onChange={set('notas')} placeholder="Detalles adicionales..." />
+        <label className="eyebrow" style={{ marginBottom: 6 }}>Notas</label>
+        <textarea className="input" rows={2} value={form.notas} onChange={set('notas')} placeholder="Detalles adicionales..." />
       </div>
-      <div className="flex gap-3 pt-2">
-        <button type="submit" disabled={loading} className="btn-primary flex-1">
-          {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" /> : 'Guardar movimiento'}
+      <div style={{ display: 'flex', gap: 10, paddingTop: 4 }}>
+        <button type="submit" disabled={loading} className="btn-primary" style={{ flex: 1 }}>
+          {loading ? <span style={{ width: 16, height: 16, border: '2px solid rgba(6,40,31,.3)', borderTopColor: '#06281f', borderRadius: '50%', animation: 'spin .7s linear infinite', display: 'inline-block' }} /> : 'Guardar movimiento'}
         </button>
         <button type="button" onClick={onCancel} className="btn-secondary">Cancelar</button>
       </div>
@@ -87,85 +87,67 @@ export default function Caja() {
       api.get('/caja/?' + params),
       api.get('/caja/resumen?' + new URLSearchParams(mes ? { mes } : {})),
     ])
-    setMovimientos(m.data)
-    setResumen(r.data)
-    setLoading(false)
+    setMovimientos(m.data); setResumen(r.data); setLoading(false)
   }
   useEffect(() => { load() }, [filtroTipo, mes])
 
-  const handleSave = async (data) => {
+  const handleSave = async data => {
     setSaving(true)
     try {
       if (modal?.id) await api.put(`/caja/${modal.id}`, data)
       else await api.post('/caja/', data)
-      await load()
-      setModal(null)
+      await load(); setModal(null)
     } finally { setSaving(false) }
   }
-
-  const handleDelete = async (id) => {
+  const handleDelete = async id => {
     if (!confirm('¿Eliminar este movimiento?')) return
-    await api.delete(`/caja/${id}`)
-    await load()
+    await api.delete(`/caja/${id}`); await load()
   }
-
-  const fmt = (n) => '$' + Number(n).toLocaleString('es-DO', { minimumFractionDigits: 2 })
+  const fmt = n => 'RD$' + Number(n).toLocaleString('es-DO', { maximumFractionDigits: 0 })
 
   return (
     <Layout>
       <ModuleGuard module="caja">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
-            <h1 className="text-2xl font-bold text-white">Caja</h1>
-            <p className="text-sm text-slate-400">Ingresos y gastos</p>
+            <span className="eyebrow">Control financiero</span>
+            <h2>Caja</h2>
           </div>
-          <button onClick={() => setModal('nuevo')} className="btn-primary flex items-center gap-2">
-            <Plus className="w-4 h-4" /> Registrar movimiento
+          <button className="btn-primary" onClick={() => setModal('nuevo')}>
+            <Plus size={16} /> Registrar movimiento
           </button>
         </div>
 
         {/* Resumen */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="card border-l-4 border-l-emerald-500">
-            <div className="flex items-center gap-3">
-              <TrendingUp className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-              <div>
-                <p className="text-xs text-slate-500 mb-0.5">Ingresos</p>
-                <p className="text-xl font-bold text-emerald-400">{fmt(resumen.ingresos)}</p>
-              </div>
+        <div className="grid-main" style={{ marginBottom: 20 }}>
+          <section className="card span-full split-stats">
+            <div>
+              <span className="eyebrow"><TrendingUp size={11} style={{ color: 'var(--green)' }} /> Ingresos del mes</span>
+              <b className="mono big pos">{fmt(resumen.ingresos)}</b>
             </div>
-          </div>
-          <div className="card border-l-4 border-l-rose-500">
-            <div className="flex items-center gap-3">
-              <TrendingDown className="w-5 h-5 text-rose-400 flex-shrink-0" />
-              <div>
-                <p className="text-xs text-slate-500 mb-0.5">Gastos</p>
-                <p className="text-xl font-bold text-rose-400">{fmt(resumen.gastos)}</p>
-              </div>
+            <div>
+              <span className="eyebrow"><TrendingDown size={11} style={{ color: 'var(--coral)' }} /> Gastos del mes</span>
+              <b className="mono big neg">{fmt(resumen.gastos)}</b>
             </div>
-          </div>
-          <div className={`card border-l-4 ${resumen.balance >= 0 ? 'border-l-indigo-500' : 'border-l-amber-500'}`}>
-            <div className="flex items-center gap-3">
-              <Wallet className={`w-5 h-5 flex-shrink-0 ${resumen.balance >= 0 ? 'text-indigo-400' : 'text-amber-400'}`} />
-              <div>
-                <p className="text-xs text-slate-500 mb-0.5">Balance</p>
-                <p className={`text-xl font-bold ${resumen.balance >= 0 ? 'text-indigo-400' : 'text-amber-400'}`}>{fmt(resumen.balance)}</p>
-              </div>
+            <div>
+              <span className="eyebrow"><Wallet size={11} /> Saldo neto</span>
+              <b className={`mono big ${resumen.balance >= 0 ? 'pos' : 'neg'}`}>{fmt(resumen.balance)}</b>
             </div>
-          </div>
+            <div>
+              <span className="eyebrow">Movimientos</span>
+              <b className="mono big">{movimientos.length}</b>
+            </div>
+          </section>
         </div>
 
         {/* Filtros */}
-        <div className="flex gap-3 mb-6">
-          <input type="month" className="input w-44" value={mes} onChange={e => setMes(e.target.value)} />
-          <div className="flex gap-1 bg-slate-800 border border-slate-700 rounded-xl p-1">
+        <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+          <input type="month" className="input" style={{ width: 168 }} value={mes} onChange={e => setMes(e.target.value)} />
+          <div style={{ display: 'flex', gap: 4, background: 'var(--surface)', border: '1px solid var(--border-soft)', borderRadius: 11, padding: 4 }}>
             {[['', 'Todos'], ['ingreso', 'Ingresos'], ['gasto', 'Gastos']].map(([v, l]) => (
               <button key={v} onClick={() => setFiltroTipo(v)}
-                className={[
-                  'px-4 py-1.5 rounded-lg text-sm font-medium transition-all',
-                  filtroTipo === v ? 'bg-slate-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-300',
-                ].join(' ')}>
+                style={{ padding: '7px 16px', borderRadius: 8, fontSize: 13, fontWeight: 500, color: filtroTipo === v ? 'var(--text)' : 'var(--text-3)', background: filtroTipo === v ? 'var(--surface-2)' : 'transparent', transition: '.14s' }}>
                 {l}
               </button>
             ))}
@@ -173,61 +155,49 @@ export default function Caja() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-20">
-            <span className="w-8 h-8 border-2 border-indigo-500/30 border-t-indigo-400 rounded-full animate-spin" />
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0' }}>
+            <span style={{ width: 32, height: 32, border: '2px solid var(--border)', borderTopColor: 'var(--green)', borderRadius: '50%', animation: 'spin .7s linear infinite', display: 'block' }} />
           </div>
         ) : movimientos.length === 0 ? (
           <EmptyState icon="💰" title="Sin movimientos"
             description="Registra tus primeros ingresos o gastos para llevar el control de tu caja."
-            action={<button onClick={() => setModal('nuevo')} className="btn-primary flex items-center gap-2"><Plus className="w-4 h-4" /> Registrar movimiento</button>}
+            action={<button className="btn-primary" onClick={() => setModal('nuevo')}><Plus size={16} /> Registrar movimiento</button>}
           />
         ) : (
-          <div className="card overflow-hidden p-0">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-700/60">
-                  {['Fecha', 'Descripción', 'Categoría', 'Tipo', 'Monto', ''].map(h => (
-                    <th key={h} className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3 first:pl-5 last:pr-5">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-700/40">
-                {movimientos.map(m => (
-                  <tr key={m.id} className="hover:bg-slate-800/40 transition-colors group">
-                    <td className="px-4 py-3 pl-5 text-sm text-slate-400">
-                      {new Date(m.fecha + 'T00:00:00').toLocaleDateString('es-DO', { day: '2-digit', month: 'short' })}
-                    </td>
-                    <td className="px-4 py-3 text-sm font-medium text-white max-w-[200px] truncate">{m.descripcion}</td>
-                    <td className="px-4 py-3">
-                      <span className="badge badge-gray">{m.categoria || '—'}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={m.tipo === 'ingreso' ? 'badge badge-green' : 'badge badge-red'}>
-                        {m.tipo === 'ingreso' ? '↑ Ingreso' : '↓ Gasto'}
-                      </span>
-                    </td>
-                    <td className={`px-4 py-3 text-sm font-bold ${m.tipo === 'ingreso' ? 'text-emerald-400' : 'text-rose-400'}`}>
-                      {m.tipo === 'ingreso' ? '+' : '-'}{fmt(m.monto)}
-                    </td>
-                    <td className="px-4 py-3 pr-5">
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => setModal(m)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">
-                          <Pencil size={13} />
-                        </button>
-                        <button onClick={() => handleDelete(m.id)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-700 transition-colors">
-                          <Trash2 size={13} />
-                        </button>
-                      </div>
-                    </td>
+          <section className="card span-full">
+            <div className="tbl-wrap">
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    {['Fecha', 'Descripción', 'Categoría', 'Tipo', 'Monto', ''].map(h => <th key={h}>{h}</th>)}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {movimientos.map(m => (
+                    <tr key={m.id} style={{ position: 'relative' }}>
+                      <td className="mono muted">{new Date(m.fecha + 'T00:00:00').toLocaleDateString('es-DO', { day: '2-digit', month: 'short' })}</td>
+                      <td className="strong">{m.descripcion}</td>
+                      <td><span className="pill soft">{m.categoria || '—'}</span></td>
+                      <td>
+                        <span className={m.tipo === 'ingreso' ? 'pill pos' : 'pill neg'}>
+                          {m.tipo === 'ingreso' ? '↑ Ingreso' : '↓ Gasto'}
+                        </span>
+                      </td>
+                      <td className={`mono strong ${m.tipo === 'ingreso' ? 'pos' : 'neg'}`}>
+                        {m.tipo === 'ingreso' ? '+' : '−'}{fmt(m.monto)}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <button onClick={() => setModal(m)} className="btn-ghost" title="Editar"><Pencil size={14} /></button>
+                          <button onClick={() => handleDelete(m.id)} className="btn-ghost" style={{ color: 'var(--coral)' }} title="Eliminar"><Trash2 size={14} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
         )}
 
         <Modal open={!!modal} onClose={() => setModal(null)} title={modal?.id ? 'Editar movimiento' : 'Nuevo movimiento'}>

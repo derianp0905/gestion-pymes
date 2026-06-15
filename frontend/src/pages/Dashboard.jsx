@@ -1,80 +1,88 @@
 import { useState, useEffect } from 'react'
-import { useAuth } from '../context/AuthContext'
 import { useSubscription } from '../hooks/useSubscription'
 import Layout from '../components/Layout'
 import api from '../api/client'
 import {
-  TrendingUp, TrendingDown, Users, FileText,
-  Wallet, ArrowUpRight, Zap, Calendar, RefreshCw
+  TrendingUp, TrendingDown, Users, Wallet,
+  ArrowUpRight, ArrowDownRight, AlertTriangle, RefreshCw, MoreHorizontal,
 } from 'lucide-react'
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
+  ResponsiveContainer, CartesianGrid,
 } from 'recharts'
 
-const QUICK_ACTIONS = [
-  { label: 'Nuevo cliente',     icon: Users,    href: '/clientes',    color: 'bg-indigo-500/20 text-indigo-400' },
-  { label: 'Nueva factura',     icon: FileText, href: '/facturacion', color: 'bg-emerald-500/20 text-emerald-400' },
-  { label: 'Registrar ingreso', icon: Wallet,   href: '/caja',        color: 'bg-amber-500/20 text-amber-400' },
-  { label: 'Ver agenda',        icon: Calendar, href: '/agenda',      color: 'bg-violet-500/20 text-violet-400' },
-]
-
-function StatCard({ label, value, sub, trend, trendUp, icon: Icon, iconColor, loading }) {
+/* ── Sparkline ── */
+function Spark({ data, color }) {
+  const d = data.map((y, x) => ({ x, y }))
   return (
-    <div className="card">
-      <div className="flex items-start justify-between mb-4">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconColor}`}>
-          <Icon className="w-5 h-5" />
-        </div>
-        {trend !== undefined && (
-          <div className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${trendUp ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
-            {trendUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-            {trend}%
-          </div>
+    <ResponsiveContainer width="100%" height={34}>
+      <AreaChart data={d} margin={{ top: 2, bottom: 0, left: 0, right: 0 }}>
+        <defs>
+          <linearGradient id={`sg-${color.replace('#', '')}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity={0.45} />
+            <stop offset="100%" stopColor={color} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <Area type="monotone" dataKey="y" stroke={color} strokeWidth={1.8}
+          fill={`url(#sg-${color.replace('#', '')})`} isAnimationActive={false} dot={false} />
+      </AreaChart>
+    </ResponsiveContainer>
+  )
+}
+
+/* ── KPI card ── */
+function Kpi({ label, value, delta, spark, color, loading }) {
+  const up = delta >= 0
+  return (
+    <section className="card kpi">
+      <div className="kpi-top">
+        <span className="muted sm">{label}</span>
+        {delta !== undefined && (
+          <span className={`chip ${up ? 'chip-up' : 'chip-down'}`}>
+            {up ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+            {Math.abs(delta)}%
+          </span>
         )}
       </div>
-      {loading ? (
-        <div className="h-8 w-28 bg-slate-700 rounded-lg animate-pulse mb-1" />
-      ) : (
-        <p className="text-2xl font-bold text-white mb-0.5">{value}</p>
-      )}
-      <p className="text-sm text-slate-400">{label}</p>
-      {sub && <p className="text-xs text-slate-500 mt-1">{sub}</p>}
+      {loading
+        ? <div style={{ height: 32, background: 'var(--surface-2)', borderRadius: 8, margin: '10px 0 2px', animation: 'pulse 1.4s infinite' }} />
+        : <div className="kpi-val mono">{value}</div>
+      }
+      <div className="kpi-spark">
+        {spark && <Spark data={spark} color={color} />}
+      </div>
+    </section>
+  )
+}
+
+/* ── Chart tooltip ── */
+const ChartTip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null
+  const fmt = n => 'RD$' + Number(n).toLocaleString('es-DO', { maximumFractionDigits: 0 })
+  return (
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border-soft)', borderRadius: 12, padding: '10px 14px', fontFamily: 'Inter', fontSize: 12 }}>
+      <p style={{ color: 'var(--text-2)', marginBottom: 6, fontWeight: 600 }}>{label}</p>
+      {payload.map((p, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3 }}>
+          <span style={{ width: 8, height: 8, borderRadius: 3, background: p.color, flexShrink: 0 }} />
+          <span style={{ color: 'var(--text-2)' }}>{p.name === 'ingresos' ? 'Ingresos' : 'Gastos'}</span>
+          <b style={{ color: 'var(--text)', marginLeft: 4 }}>{fmt(p.value * 1000)}</b>
+        </div>
+      ))}
     </div>
   )
 }
 
-const CustomTooltip = ({ active, payload, label }) => {
-  if (!active || !payload?.length) return null
-  const fmt = (n) => '$' + Number(n).toLocaleString('es-DO', { minimumFractionDigits: 2 })
-  return (
-    <div className="bg-slate-800 border border-slate-700 px-4 py-3 shadow-xl rounded-xl">
-      <p className="text-xs font-semibold text-slate-400 mb-2">{label}</p>
-      <div className="space-y-1">
-        <div className="flex items-center gap-2 text-sm">
-          <span className="w-2 h-2 rounded-full bg-indigo-400" />
-          <span className="text-slate-400">Ingresos:</span>
-          <span className="font-semibold text-white">{fmt(payload[0]?.value ?? 0)}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <span className="w-2 h-2 rounded-full bg-rose-400" />
-          <span className="text-slate-400">Gastos:</span>
-          <span className="font-semibold text-white">{fmt(payload[1]?.value ?? 0)}</span>
-        </div>
-      </div>
-    </div>
-  )
-}
+const fmt = n => 'RD$' + Number(n ?? 0).toLocaleString('es-DO', { maximumFractionDigits: 0 })
 
 export default function Dashboard() {
-  const { user } = useAuth()
   const { subscription } = useSubscription()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
-  const load = async (showRefresh = false) => {
-    if (showRefresh) setRefreshing(true)
+  const load = async (showSpin = false) => {
+    if (showSpin) setRefreshing(true)
     try {
       const r = await api.get('/dashboard/resumen')
       setData(r.data)
@@ -83,180 +91,232 @@ export default function Dashboard() {
       setRefreshing(false)
     }
   }
-
   useEffect(() => { load() }, [])
 
-  const fmt = (n) => '$' + Number(n ?? 0).toLocaleString('es-DO', { minimumFractionDigits: 2 })
-  const mesActual = new Date().toLocaleDateString('es-419', { month: 'long', year: 'numeric' })
-  const chartVacio = !data?.chart?.some(m => m.ingresos > 0 || m.gastos > 0)
+  const ingresos = Number(data?.ingresos_mes ?? 0)
+  const gastos   = Number(data?.gastos_mes ?? 0)
+  const balance  = Number(data?.balance_mes ?? 0)
+  const clientes = Number(data?.clientes_total ?? 0)
+
+  const chartData = (data?.chart ?? []).map(m => ({
+    mes: m.mes,
+    ingresos: Math.round(m.ingresos / 1000),
+    gastos: Math.round(m.gastos / 1000),
+  }))
+  const chartEmpty = !chartData.some(m => m.ingresos > 0 || m.gastos > 0)
+
+  const totalFlow = ingresos + gastos
+  const wIn = totalFlow > 0 ? (ingresos / totalFlow) * 100 : 50
+
+  // Fake-spark based on available data (6-month trend)
+  const ingresosSpark = chartData.map(m => m.ingresos)
+  const gastosSpark   = chartData.map(m => m.gastos)
 
   return (
     <Layout>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          <p className="text-sm text-slate-400 capitalize">{mesActual}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => load(true)}
-            disabled={refreshing}
-            className="btn-secondary flex items-center gap-2"
-          >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-            Actualizar
-          </button>
-          {subscription?.status === 'trial' && (
-            <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm px-4 py-2 rounded-xl">
-              <Zap className="w-4 h-4" />
-              <span>Trial · vence {subscription.trial_ends_at
-                ? new Date(subscription.trial_ends_at).toLocaleDateString('es-419', { day: 'numeric', month: 'short' })
-                : '—'}</span>
+      <div className="grid-main">
+
+        {/* ── Flow card ── */}
+        <section className="card flow span-2">
+          <div className="flow-glow" />
+          <div className="flow-head">
+            <div>
+              <span className="eyebrow">Flujo de caja · mes</span>
+              <div className="flow-net">
+                <span className="net-num mono">{loading ? '—' : fmt(balance)}</span>
+                {balance >= 0
+                  ? <span className="chip chip-up"><ArrowUpRight size={13} /> Positivo</span>
+                  : <span className="chip chip-down"><ArrowDownRight size={13} /> Negativo</span>
+                }
+              </div>
+              <span className="muted sm">Saldo neto del mes</span>
+            </div>
+            <button className="btn-ghost" onClick={() => load(true)}>
+              <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+            </button>
+          </div>
+          <div className="flow-bar" role="img">
+            <span className="flow-seg in" style={{ width: `${wIn}%` }} />
+            <span className="flow-seg out" style={{ width: `${100 - wIn}%` }} />
+          </div>
+          <div className="flow-legend">
+            <div className="leg">
+              <span className="leg-top"><span className="d in" /> Ingresos</span>
+              <b className="mono">{loading ? '…' : fmt(ingresos)}</b>
+              <span className="muted sm">cobros del mes</span>
+            </div>
+            <div className="leg">
+              <span className="leg-top"><span className="d out" /> Gastos</span>
+              <b className="mono">{loading ? '…' : fmt(gastos)}</b>
+              <span className="muted sm">egresos del mes</span>
+            </div>
+            <div className="leg">
+              <span className="leg-top"><span className="d save" /> Clientes</span>
+              <b className="mono">{loading ? '…' : clientes}</b>
+              <span className="muted sm">registrados</span>
+            </div>
+          </div>
+        </section>
+
+        {/* ── KPIs ── */}
+        <Kpi
+          label="Ingresos del mes"
+          value={fmt(ingresos)}
+          delta={undefined}
+          spark={ingresosSpark.length ? ingresosSpark : [0,0,0,0,0,0]}
+          color="#34D399"
+          loading={loading}
+        />
+        <Kpi
+          label="Gastos del mes"
+          value={fmt(gastos)}
+          delta={undefined}
+          spark={gastosSpark.length ? gastosSpark : [0,0,0,0,0,0]}
+          color="#FB7185"
+          loading={loading}
+        />
+        <Kpi
+          label="Balance neto"
+          value={fmt(balance)}
+          delta={undefined}
+          spark={chartData.map(m => Math.max(0, m.ingresos - m.gastos))}
+          color="#60A5FA"
+          loading={loading}
+        />
+        <Kpi
+          label="Clientes activos"
+          value={clientes}
+          delta={undefined}
+          spark={[1,2,2,3,4,5,clientes || 0]}
+          color="#8B86F8"
+          loading={loading}
+        />
+
+        {/* ── Bar chart ── */}
+        <section className="card span-2">
+          <div className="card-head">
+            <div>
+              <span className="eyebrow">Últimos 6 meses</span>
+              <h3>Ingresos vs gastos</h3>
+            </div>
+            <span className="chip chip-soft">
+              <TrendingUp size={13} /> Semestre actual
+            </span>
+          </div>
+          {loading ? (
+            <div style={{ height: 232, background: 'var(--surface-2)', borderRadius: 12, animation: 'pulse 1.4s infinite' }} />
+          ) : chartEmpty ? (
+            <div style={{ height: 232, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-3)' }}>
+              <p style={{ fontSize: 36, margin: 0 }}>📊</p>
+              <p style={{ fontSize: 13, marginTop: 8 }}>Registra movimientos para ver la gráfica</p>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={232}>
+              <BarChart data={chartData} barGap={6} margin={{ top: 8, right: 4, left: -18, bottom: 0 }}>
+                <CartesianGrid vertical={false} stroke="var(--border-soft)" />
+                <XAxis dataKey="mes" tickLine={false} axisLine={false}
+                  tick={{ fill: 'var(--text-3)', fontSize: 12, fontFamily: 'Inter' }} />
+                <YAxis tickLine={false} axisLine={false}
+                  tick={{ fill: 'var(--text-3)', fontSize: 11, fontFamily: 'JetBrains Mono' }}
+                  tickFormatter={v => `${v}k`} />
+                <Tooltip cursor={{ fill: 'rgba(127,127,127,.06)' }} content={<ChartTip />} />
+                <Bar dataKey="ingresos" radius={[5,5,0,0]} fill="#34D399" maxBarSize={20} name="ingresos" />
+                <Bar dataKey="gastos" radius={[5,5,0,0]} fill="#324054" maxBarSize={20} name="gastos" />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </section>
+
+        {/* ── Facturación resumen ── */}
+        <section className="card">
+          <div className="card-head">
+            <div>
+              <span className="eyebrow">Resumen</span>
+              <h3>Facturación</h3>
+            </div>
+          </div>
+          {loading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[1,2,3].map(i => <div key={i} style={{ height: 40, background: 'var(--surface-2)', borderRadius: 9, animation: 'pulse 1.4s infinite' }} />)}
+            </div>
+          ) : (
+            <div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+                <div className="list-row" style={{ background: 'rgba(52,211,153,.08)', borderRadius: 10, padding: '8px 12px' }}>
+                  <div className="grow">
+                    <span className="row-title">Facturas cobradas</span>
+                    <span className="muted sm">pagadas este mes</span>
+                  </div>
+                  <b className="mono pos">{data?.facturas_pagadas ?? 0}</b>
+                </div>
+                <div className="list-row" style={{ background: 'rgba(251,191,36,.08)', borderRadius: 10, padding: '8px 12px' }}>
+                  <div className="grow">
+                    <span className="row-title">Por cobrar</span>
+                    <span className="muted sm">facturas enviadas</span>
+                  </div>
+                  <b className="mono warn">{fmt(data?.monto_por_cobrar)}</b>
+                </div>
+              </div>
+              <a href="/facturacion" style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12.5, color: 'var(--green)', fontWeight: 600, textDecoration: 'none' }}>
+                Ver todas las facturas <ArrowUpRight size={13} />
+              </a>
             </div>
           )}
-        </div>
-      </div>
+        </section>
 
-      <div className="space-y-6">
-        {/* KPI Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Ingresos del mes" value={fmt(data?.ingresos_mes)}
-            icon={TrendingUp} iconColor="bg-emerald-500/20 text-emerald-400" loading={loading} />
-          <StatCard label="Gastos del mes" value={fmt(data?.gastos_mes)}
-            icon={TrendingDown} iconColor="bg-rose-500/20 text-rose-400" loading={loading} />
-          <StatCard label="Balance neto" value={fmt(data?.balance_mes)} sub="Ingresos − gastos"
-            icon={Wallet} iconColor="bg-indigo-500/20 text-indigo-400" loading={loading} />
-          <StatCard label="Clientes activos" value={loading ? '—' : data?.clientes_total}
-            icon={Users} iconColor="bg-violet-500/20 text-violet-400" loading={loading} />
-        </div>
-
-        {/* Chart + Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Chart */}
-          <div className="card lg:col-span-2">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="font-semibold text-white">Ingresos vs Gastos</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Últimos 6 meses</p>
-              </div>
-              <div className="flex items-center gap-4 text-xs">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-0.5 bg-indigo-400 rounded-full inline-block" />
-                  <span className="text-slate-400">Ingresos</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-0.5 bg-rose-400 rounded-full inline-block" />
-                  <span className="text-slate-400">Gastos</span>
-                </div>
-              </div>
-            </div>
-
-            {loading ? (
-              <div className="h-[220px] bg-slate-700/30 rounded-xl animate-pulse" />
-            ) : chartVacio ? (
-              <div className="h-[220px] flex flex-col items-center justify-center text-center">
-                <p className="text-4xl mb-3">📊</p>
-                <p className="text-sm font-medium text-slate-400">Sin datos aún</p>
-                <p className="text-xs text-slate-500 mt-1">Registra movimientos en Caja para ver la gráfica</p>
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height={220}>
-                <AreaChart data={data?.chart ?? []} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="gIngresos" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="gGastos" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#fb7185" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#fb7185" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                  <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false}
-                    tickFormatter={(v) => '$' + (v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v)} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="ingresos" stroke="#6366f1" strokeWidth={2} fill="url(#gIngresos)"
-                    dot={false} activeDot={{ r: 4, fill: '#6366f1' }} />
-                  <Area type="monotone" dataKey="gastos" stroke="#fb7185" strokeWidth={2} fill="url(#gGastos)"
-                    dot={false} activeDot={{ r: 4, fill: '#fb7185' }} />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
+        {/* ── Acciones rápidas ── */}
+        <section className="card">
+          <div className="card-head">
+            <div><span className="eyebrow">Atajos</span><h3>Acciones rápidas</h3></div>
           </div>
-
-          {/* Quick Actions + Facturas */}
-          <div className="space-y-4">
-            <div className="card">
-              <h2 className="font-semibold text-white mb-4">Acciones rápidas</h2>
-              <div className="space-y-1">
-                {QUICK_ACTIONS.map(({ label, icon: Icon, href, color }) => (
-                  <a key={href} href={href}
-                    className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-700/50 transition-colors group">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${color}`}>
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <span className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">{label}</span>
-                    </div>
-                    <ArrowUpRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" />
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            {/* Facturas resumen */}
-            <div className="card">
-              <h2 className="font-semibold text-white mb-4">Facturación</h2>
-              {loading ? (
-                <div className="space-y-2">
-                  {[1, 2].map(i => <div key={i} className="h-10 bg-slate-700 rounded-lg animate-pulse" />)}
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-                    <span className="text-xs text-emerald-400 font-medium">Cobradas</span>
-                    <span className="text-sm font-bold text-emerald-400">{data?.facturas_pagadas ?? 0}</span>
+          <ul className="list">
+            {[
+              { label: 'Nuevo cliente',   href: '/clientes',    color: '#8B86F8', bg: 'rgba(139,134,248,.12)' },
+              { label: 'Nueva factura',   href: '/facturacion', color: '#34D399', bg: 'rgba(52,211,153,.12)' },
+              { label: 'Registrar gasto', href: '/caja',        color: '#FBBF24', bg: 'rgba(251,191,36,.12)' },
+              { label: 'Perfil empresa',  href: '/perfil-empresa', color: '#60A5FA', bg: 'rgba(96,165,250,.12)' },
+            ].map(a => (
+              <li key={a.href}>
+                <a href={a.href} className="list-row" style={{ textDecoration: 'none' }}>
+                  <div style={{ width: 30, height: 30, borderRadius: 9, background: a.bg, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                    <ArrowUpRight size={14} style={{ color: a.color }} />
                   </div>
-                  <div className="flex items-center justify-between p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-                    <span className="text-xs text-amber-400 font-medium">Por cobrar</span>
-                    <span className="text-sm font-bold text-amber-400">{fmt(data?.monto_por_cobrar)}</span>
-                  </div>
-                  <a href="/facturacion" className="flex items-center gap-1 text-xs text-indigo-400 font-medium pt-1 hover:text-indigo-300">
-                    Ver todas las facturas <ArrowUpRight className="w-3 h-3" />
-                  </a>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+                  <span className="row-title" style={{ color: 'var(--text)' }}>{a.label}</span>
+                  <ArrowUpRight size={14} style={{ color: 'var(--text-3)', marginLeft: 'auto' }} />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
 
-        {/* Módulos activos */}
+        {/* ── Módulos activos ── */}
         {subscription?.modulos?.length > 0 && (
-          <div className="card">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-white">Módulos activos</h2>
-              <span className="badge badge-blue">{subscription.plan}</span>
+          <section className="card span-full">
+            <div className="card-head">
+              <div><span className="eyebrow">Tu plan</span><h3>Módulos activos</h3></div>
+              <span className="pill soft">{subscription.plan}</span>
             </div>
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-              {subscription.modulos.map((mod) => {
-                const iconos = { clientes: '👥', facturacion: '🧾', caja: '💰', inventario: '📦', agenda: '📅', establo: '🐴', empleados: '👔', reportes_ia: '🤖', multi_sucursal: '🏢' }
-                const hrefs = { clientes: '/clientes', facturacion: '/facturacion', caja: '/caja', inventario: '/inventario', agenda: '/agenda', establo: '/establo', empleados: '/empleados', reportes_ia: '/reportes', multi_sucursal: '/sucursales' }
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12 }}>
+              {subscription.modulos.map(mod => {
+                const iconos = { clientes: '👥', facturacion: '🧾', caja: '💰', inventario: '📦', agenda: '📅', establo: '🐴', empleados: '👔', reportes_ia: '✨', multi_sucursal: '🏢' }
+                const hrefs  = { clientes: '/clientes', facturacion: '/facturacion', caja: '/caja', inventario: '/inventario', agenda: '/agenda', empleados: '/empleados', reportes_ia: '/reportes', multi_sucursal: '/sucursales' }
                 return (
                   <a key={mod} href={hrefs[mod] ?? '#'}
-                    className="flex flex-col items-center gap-2 p-4 rounded-xl bg-slate-700/40 hover:bg-slate-700 border border-slate-700/60 hover:border-indigo-500/40 transition-all group">
-                    <span className="text-2xl">{iconos[mod] ?? '⚙️'}</span>
-                    <span className="text-xs font-medium text-slate-400 group-hover:text-white text-center leading-tight capitalize">
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: 14, borderRadius: 14, background: 'var(--surface-2)', border: '1px solid var(--border-soft)', textDecoration: 'none', transition: '.14s' }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--green)'; e.currentTarget.style.background = 'rgba(52,211,153,.08)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-soft)'; e.currentTarget.style.background = 'var(--surface-2)'; }}
+                  >
+                    <span style={{ fontSize: 24 }}>{iconos[mod] ?? '⚙️'}</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 500, color: 'var(--text-2)', textAlign: 'center', textTransform: 'capitalize' }}>
                       {mod.replace('_', ' ')}
                     </span>
                   </a>
                 )
               })}
             </div>
-          </div>
+          </section>
         )}
+
       </div>
     </Layout>
   )
