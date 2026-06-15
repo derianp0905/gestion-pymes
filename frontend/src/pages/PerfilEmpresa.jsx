@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import api from "../api/client"
+import Layout from "../components/Layout"
 import {
   Building2, Save, Loader2, CheckCircle2, Globe, Phone, Mail,
-  MapPin, FileText, DollarSign, Camera
+  MapPin, FileText, DollarSign, Camera, ArrowLeft,
 } from "lucide-react"
 
 const PAISES = [
@@ -46,6 +48,7 @@ function Field({ label, icon: Icon, children }) {
 }
 
 export default function PerfilEmpresa() {
+  const navigate = useNavigate()
   const [form, setForm] = useState(EMPTY)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -73,22 +76,30 @@ export default function PerfilEmpresa() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="animate-spin text-indigo-400" size={32} />
-      </div>
+      <Layout>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0' }}>
+          <Loader2 size={32} style={{ color: 'var(--green)', animation: 'spin .8s linear infinite' }} />
+        </div>
+      </Layout>
     )
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <Layout>
+    <div style={{ maxWidth: 720, margin: '0 auto' }}>
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <div className="w-12 h-12 bg-indigo-500/20 rounded-xl flex items-center justify-center">
-          <Building2 className="text-indigo-400" size={22} />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-white">Perfil de Empresa</h1>
-          <p className="text-slate-400 text-sm">Esta información aparece en tus facturas y documentos.</p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
+        <button onClick={() => navigate(-1)} className="btn-ghost"
+          style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-3)', padding: '6px 10px' }}>
+          <ArrowLeft size={15} /> Volver
+        </button>
+        <div style={{ width: 1, height: 20, background: 'var(--border)' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Building2 size={18} style={{ color: 'var(--blue)' }} />
+          <div>
+            <h2 style={{ margin: 0 }}>Perfil de Empresa</h2>
+            <p className="muted sm" style={{ margin: 0 }}>Esta información aparece en tus facturas y documentos.</p>
+          </div>
         </div>
       </div>
 
@@ -205,5 +216,6 @@ export default function PerfilEmpresa() {
         </div>
       </form>
     </div>
+    </Layout>
   )
 }
